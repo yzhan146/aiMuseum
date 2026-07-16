@@ -1,0 +1,14 @@
+{
+  "name": "ai-museum",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "npm run build -w @ai-museum/sdk && npm run build -w @ai-museum/characters && npm run dev -w @ai-museum/web",
+    "build": "npm run build -w @ai-museum/sdk && npm run build -w @ai-museum/characters && npm run build -w @ai-museum/worker && npm run build -w @ai-museum/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run build -w @ai-museum/sdk && npm run build -w @ai-museum/characters && npm run test --workspaces --if-present"
+  },
+  "engines": { "node": ">=20" }
+}

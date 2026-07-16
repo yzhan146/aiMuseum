@@ -1,0 +1,49 @@
+name: Character pack proposal
+description: 提议新增或维护历史人物包
+title: "[Character]: "
+labels: ["character-pack", "content-review"]
+body:
+  - type: input
+    id: identity
+    attributes:
+      label: 人物与生卒时间
+      placeholder: 姓名（生年–卒年）
+    validations:
+      required: true
+  - type: textarea
+    id: educational_goal
+    attributes:
+      label: 教育目标
+      description: 9–12岁学习者为什么值得认识这位人物？
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: 初始可靠来源
+      description: 至少列出来源、机构/作者、链接或馆藏编号和定位。
+    validations:
+      required: true
+  - type: textarea
+    id: license
+    attributes:
+      label: 人物包与素材许可
+      description: 分别说明原创文字、图片、音频、视频和摘录的权利状态。
+    validations:
+      required: true
+  - type: textarea
+    id: controversies
+    attributes:
+      label: 争议、冒充或伤害风险
+      description: 说明需要并存展示的观点和需要额外审核的风险。
+  - type: checkboxes
+    id: declarations
+    attributes:
+      label: 提交声明
+      options:
+        - label: 该人物已经去世，且身份可以由来源验证。
+          required: true
+        - label: 我不会上传无权再发布的完整材料。
+          required: true
+        - label: AI 提取内容会经过人工核对后才提交为正式 Claim。
+          required: true

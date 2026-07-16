@@ -1,0 +1,12 @@
+node_modules/
+.npm-cache/
+.next/
+.next-dev/
+dist/
+coverage/
+.env
+.env.local
+data/runtime/
+data/uploads/
+*.log
+*.tsbuildinfo

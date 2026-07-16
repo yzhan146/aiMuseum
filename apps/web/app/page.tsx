@@ -1,0 +1,1 @@
+export default function Home() { return <main className="hero"><p>OPEN CHARACTER PLATFORM / 01</p><h1>走进历史，<br/><em>认识真实的人</em></h1><p>选择喜欢的界面。功能、人物和历史事实完全相同，只改变视觉密度与设计语言。</p><div><a className="button" href="/museum?mode=child">轻快版 · 活泼探索</a><a className="button ghost" href="/museum?mode=adult">典藏版 · 沉浸阅读</a></div><p><a href="/studio">我是维护者，进入独立创作台 →</a></p></main>; }

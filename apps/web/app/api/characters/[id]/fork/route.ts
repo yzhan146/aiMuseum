@@ -1,0 +1,2 @@
+import { forkPack } from "@/lib/repository";
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) { try { const { id } = await params; const body = await request.json(); return Response.json(forkPack(id, body.authorId, body.authorName), { status: 201 }); } catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Fork 失败" }, { status: 400 }); } }

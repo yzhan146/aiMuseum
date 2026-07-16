@@ -1,0 +1,2 @@
+import { attachAcceptedCandidate } from "@/lib/repository";
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) { try { const { id } = await params; const body = await request.json(); if (!['accepted','rejected'].includes(body.decision)) throw new Error("审核决定无效"); return Response.json(attachAcceptedCandidate(id, body.decision, Number(body.revision ?? 0), body.edits)); } catch (error) { return Response.json({ error: error instanceof Error ? error.message : "审核失败" }, { status: 409 }); } }

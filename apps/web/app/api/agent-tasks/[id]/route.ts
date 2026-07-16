@@ -1,0 +1,3 @@
+import { resolveIdentity, withIdentity } from "@/lib/identity";
+import { getTask } from "@/lib/platform-store";
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) { const identity = resolveIdentity(request); const { id } = await params; const task = getTask(id, identity.userId); return withIdentity(task ? Response.json({ task }) : Response.json({ error: "任务不存在" }, { status: 404 }), identity); }

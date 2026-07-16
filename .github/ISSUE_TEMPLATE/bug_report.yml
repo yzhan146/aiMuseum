@@ -1,0 +1,56 @@
+name: Bug report
+description: 报告可以重复的软件问题
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: 感谢报告问题。请勿提交 API Key、聊天隐私或未授权史料。
+  - type: textarea
+    id: summary
+    attributes:
+      label: 问题描述
+      description: 发生了什么？你原本期待什么？
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 重现步骤
+      placeholder: |
+        1. 打开……
+        2. 点击……
+        3. 看到……
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: 发生位置
+      options:
+        - 访客端
+        - 维护者工作台
+        - API / Worker
+        - 人物包 SDK
+        - 文档
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 环境
+      description: 操作系统、浏览器、Node.js 与项目版本。
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 截图或无敏感信息的日志
+      description: 粘贴前请移除密钥、Cookie、聊天记录与个人信息。
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交确认
+      options:
+        - label: 我已经搜索过现有 Issue。
+          required: true
+        - label: 这不是需要私下报告的安全漏洞。
+          required: true

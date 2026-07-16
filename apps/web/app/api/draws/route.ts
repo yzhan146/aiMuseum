@@ -1,0 +1,13 @@
+import { commitDraw } from "@/lib/exploration";
+import { resolveIdentity, withIdentity } from "@/lib/identity";
+
+export async function POST(request: Request) {
+  const identity = resolveIdentity(request);
+  try {
+    const input = await request.json();
+    if (!input.idempotencyKey || !input.periodId) throw new Error("抽取字段不完整");
+    return withIdentity(Response.json(commitDraw(identity.userId, input), { status: 201 }), identity);
+  } catch (error) {
+    return withIdentity(Response.json({ error: error instanceof Error ? error.message : "抽取失败" }, { status: 409 }), identity);
+  }
+}

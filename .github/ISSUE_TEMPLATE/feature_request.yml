@@ -1,0 +1,40 @@
+name: Feature request
+description: 提议新的产品、平台或开发者能力
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的问题
+      description: 谁在什么情境下遇到了什么困难？
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+      description: 描述理想流程，而不只是一个按钮或技术名词。
+    validations:
+      required: true
+  - type: dropdown
+    id: audience
+    attributes:
+      label: 主要受众
+      options:
+        - 学习者
+        - 人物维护者
+        - 平台开发者
+        - 机构策展者
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: 历史、许可、儿童安全与隐私影响
+      description: 如果没有影响，也请说明为什么。
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 如何判断完成
+      description: 给出可以测试或观察的结果。

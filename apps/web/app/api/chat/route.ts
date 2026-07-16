@@ -1,0 +1,5 @@
+import { sendThreadMessage } from "@/lib/chat-service";
+import { resolveIdentity, withIdentity } from "@/lib/identity";
+import { getOrCreateThread } from "@/lib/platform-store";
+import { getPublishedPack } from "@/lib/repository";
+export async function POST(request: Request) { const identity = resolveIdentity(request); try { const body = await request.json(); if (!body.characterId || !body.message?.trim() || body.message.length > 2000) return withIdentity(Response.json({ error: "问题无效" }, { status: 400 }), identity); const pack = getPublishedPack(body.characterId, body.version); if (!pack) return withIdentity(Response.json({ error: "人物版本不存在或尚未发布" }, { status: 404 }), identity); const thread = getOrCreateThread(identity.userId, body.characterId, pack.manifest.version, pack.manifest.name[pack.manifest.defaultLocale] ?? body.characterId); const result = await sendThreadMessage(identity.userId, thread, body.message, body.ageBand, body.locale); return withIdentity(Response.json(result), identity); } catch (error) { return withIdentity(Response.json({ error: error instanceof Error ? error.message : "对话失败" }, { status: 409 }), identity); } }

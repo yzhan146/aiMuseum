@@ -1,0 +1,7 @@
+import { createHash } from "node:crypto";
+import { isIP } from "node:net";
+export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+export const allowedMimeTypes = new Set(["application/pdf", "text/plain", "text/markdown", "text/vtt", "application/x-subrip", "image/png", "image/jpeg", "audio/mpeg", "audio/wav", "video/mp4"]);
+export const checksum = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
+export function assertSafeUrl(raw: string) { const url = new URL(raw); if (!['http:', 'https:'].includes(url.protocol)) throw new Error("只允许 HTTP/HTTPS 链接"); const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, ""); if (host === "localhost" || host.endsWith(".local") || host === "0.0.0.0" || host === "::1") throw new Error("不允许本机或内网链接"); if (isIP(host)) { if (host.includes(":")) { if (/^(fc|fd|fe80)/i.test(host)) throw new Error("不允许内网链接"); } else { const p = host.split(".").map(Number); if (p[0] === 10 || p[0] === 127 || p[0] === 0 || (p[0] === 169 && p[1] === 254) || (p[0] === 192 && p[1] === 168) || (p[0] === 172 && p[1] >= 16 && p[1] <= 31)) throw new Error("不允许内网链接"); } } return url; }
+export function assertSafeUpload(file: File) { if (file.size > MAX_UPLOAD_BYTES) throw new Error("文件超过 100MB"); if (!allowedMimeTypes.has(file.type)) throw new Error("不支持的文件类型"); if (/\.(?:exe|dll|js|mjs|cjs|bat|cmd|ps1|scr)$/i.test(file.name)) throw new Error("禁止上传可执行文件"); }

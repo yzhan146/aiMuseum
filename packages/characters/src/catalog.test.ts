@@ -30,7 +30,8 @@ describe("historical catalog", () => {
       expect(character.portraitVariants.cartoon.alt).toContain(character.name);
       expect(character.portraitVariants.realistic.alt).toContain(character.name);
       expect(character.portraitVariants.cartoon.representation).toBe("artistic_interpretation");
-      expect(character.portraitVariants.realistic.representation).toBe("artistic_interpretation");
+      expect(character.portraitVariants.realistic.representation).toBe("evidence_based_reconstruction");
+      expect(character.portraitVariants.realistic.assetPath).toBe(`/characters/realistic/${character.id}.png`);
     }
   });
 });

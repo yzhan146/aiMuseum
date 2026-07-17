@@ -77,9 +77,10 @@ const person = (
       sourceLabel: "形象资产待维护者添加"
     },
     realistic: {
-      alt: `${name}的写实形象占位`,
-      representation: "artistic_interpretation",
-      sourceLabel: "形象资产待维护者添加"
+      assetPath: `/characters/realistic/${id}.png`,
+      alt: `${name}的典藏模式写实历史重建头像`,
+      representation: "evidence_based_reconstruction",
+      sourceLabel: "AI Museum 历史重建头像"
     }
   }
 });

@@ -2,6 +2,7 @@ import type { CharacterPack } from "@ai-museum/sdk";
 import { catalogCharacterById, catalogCharacters, historicalPeriodById, type CatalogCharacter } from "./catalog.js";
 import { characterPersona, characterRelationship, publicRelationshipSources } from "./profiles.js";
 export * from "./catalog.js";
+export * from "./exhibits.js";
 export * from "./profiles.js";
 
 const author = { id: "ai-museum", name: "AI Museum Contributors" };

@@ -34,4 +34,17 @@ describe("historical catalog", () => {
       expect(character.portraitVariants.realistic.assetPath).toBe(`/characters/realistic/${character.id}.png`);
     }
   });
+
+  it("gives every character a useful introduction and curated discoveries", () => {
+    for (const character of catalogCharacters) {
+      expect(character.exhibit.overview.length).toBeGreaterThan(20);
+      expect(character.exhibit.biography.length).toBeGreaterThanOrEqual(3);
+      expect(character.exhibit.influence.length).toBeGreaterThan(15);
+      expect(character.exhibit.legacy.length).toBeGreaterThan(15);
+      expect(character.exhibit.works.length).toBeGreaterThanOrEqual(2);
+      expect(character.exhibit.conversationStarters.length).toBeGreaterThanOrEqual(3);
+      expect(character.exhibit.discoveries.length).toBeGreaterThanOrEqual(1);
+      expect(character.exhibit.discoveries.every(discovery => discovery.keywords.length > 0)).toBe(true);
+    }
+  });
 });

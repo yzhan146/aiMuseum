@@ -1,3 +1,5 @@
+import { characterExhibitById, fallbackExhibit, type CharacterExhibit } from "./exhibits.js";
+
 export type CharacterTier = "white" | "blue" | "purple" | "orange" | "gold";
 export type PortraitRepresentation = "historical_portrait" | "evidence_based_reconstruction" | "artistic_interpretation";
 
@@ -20,6 +22,7 @@ export interface CatalogCharacter {
   tier: CharacterTier;
   curatorRole: string;
   summary: string;
+  exhibit: CharacterExhibit;
   relationCharacterIds: string[];
   portraitVariants: {
     cartoon: PortraitVariant;
@@ -69,6 +72,7 @@ const person = (
   tier,
   curatorRole,
   summary,
+  exhibit: characterExhibitById[id] ?? fallbackExhibit(name, summary),
   relationCharacterIds,
   portraitVariants: {
     cartoon: {

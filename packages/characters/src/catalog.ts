@@ -76,9 +76,10 @@ const person = (
   relationCharacterIds,
   portraitVariants: {
     cartoon: {
-      alt: `${name}的卡通形象占位`,
+      assetPath: ["robert-oppenheimer", "chien-shiung-wu"].includes(id) ? undefined : `/characters/cartoon/${id}.png`,
+      alt: `${name}的轻快版卡通头像`,
       representation: "artistic_interpretation",
-      sourceLabel: "形象资产待维护者添加"
+      sourceLabel: ["robert-oppenheimer", "chien-shiung-wu"].includes(id) ? "卡通形象待补充" : "AI Museum 卡通人物头像"
     },
     realistic: {
       assetPath: `/characters/realistic/${id}.png`,

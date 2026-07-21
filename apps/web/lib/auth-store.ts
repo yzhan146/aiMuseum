@@ -33,6 +33,23 @@ export class AuthError extends Error {
   }
 }
 
+export function validatePassword(password: string) {
+  const valid =
+    password.length >= 8 &&
+    password.length <= 128 &&
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9\s]/.test(password);
+  if (!valid) {
+    throw new AuthError(
+      "INVALID_PASSWORD",
+      "密码需要 8 到 128 个字符，并包含大写字母、小写字母、数字和特殊字符",
+    );
+  }
+  return password;
+}
+
 function requireDatabase() {
   if (!databaseEnabled) {
     throw new AuthError(
@@ -89,9 +106,7 @@ export function validateRegistration(input: {
   if (displayName.length < 1 || displayName.length > 40) {
     throw new AuthError("INVALID_DISPLAY_NAME", "昵称需要保持在 1 到 40 个字符之间");
   }
-  if (password.length < 15 || password.length > 128) {
-    throw new AuthError("INVALID_PASSWORD", "密码需要 15 到 128 个字符");
-  }
+  validatePassword(password);
   return { email, displayName, password };
 }
 
@@ -347,9 +362,7 @@ export async function createPasswordReset(emailValue: string) {
 
 export async function resetPassword(token: string, password: string) {
   requireDatabase();
-  if (password.length < 15 || password.length > 128) {
-    throw new AuthError("INVALID_PASSWORD", "密码需要 15 到 128 个字符");
-  }
+  validatePassword(password);
   const passwordHash = await hashPassword(password);
   return transaction(async (client) => {
     const result = await client.query(

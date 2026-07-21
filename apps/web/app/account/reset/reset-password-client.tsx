@@ -1,6 +1,15 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { AuthFrame } from "../../auth-frame";
+
+const isStrongPassword = (password: string) =>
+  password.length >= 8 &&
+  password.length <= 128 &&
+  /[A-Z]/.test(password) &&
+  /[a-z]/.test(password) &&
+  /\d/.test(password) &&
+  /[^A-Za-z0-9\s]/.test(password);
 
 export default function ResetPasswordClient({ token }: { token: string }) {
   const [busy, setBusy] = useState(false);
@@ -16,6 +25,11 @@ export default function ResetPasswordClient({ token }: { token: string }) {
     const confirmation = String(values.get("confirmation") ?? "");
     if (password !== confirmation) {
       setError("两次输入的密码不一致");
+      setBusy(false);
+      return;
+    }
+    if (!isStrongPassword(password)) {
+      setError("密码需要包含大写字母、小写字母、数字和特殊字符");
       setBusy(false);
       return;
     }
@@ -35,26 +49,19 @@ export default function ResetPasswordClient({ token }: { token: string }) {
   }
 
   return (
-    <main className="account-shell">
-      <header className="account-intro">
-        <p className="account-eyebrow">账户安全</p>
-        <h1>设置新密码</h1>
-        <p>完成后，其他设备上的旧登录会自动退出。</p>
-      </header>
-      <section className="account-card">
+    <AuthFrame eyebrow="账户安全" title="设置新密码" description="完成后，其他设备上的旧登录会自动退出。">
         {!token ? (
-          <><p className="account-error">链接缺少重置凭证，请重新申请。</p><a className="account-primary" href="/account">返回账户页</a></>
+          <><p className="auth-alert">链接缺少重置凭证，请重新申请。</p><a className="auth-secondary" href="/forgot-password">重新申请</a></>
         ) : done ? (
-          <><h2>密码已经更新</h2><p>现在可以用新密码登录。</p><a className="account-primary" href="/account">前往登录</a></>
+          <><p className="auth-success">密码已经更新，现在可以用新密码登录。</p><a className="auth-primary" href="/login">前往登录</a></>
         ) : (
-          <form className="account-form" onSubmit={submit}>
-            <label>新密码<input name="password" type="password" autoComplete="new-password" minLength={15} maxLength={128} required /><small>使用至少 15 个字符。</small></label>
-            <label>再次输入<input name="confirmation" type="password" autoComplete="new-password" minLength={15} maxLength={128} required /></label>
-            <button className="account-primary" disabled={busy}>{busy ? "保存中…" : "保存新密码"}</button>
-            {error && <p className="account-error" role="alert">{error}</p>}
+          <form className="auth-form" onSubmit={submit}>
+            <label>新密码<input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={128} required /><small>至少8个字符，并包含大小写字母、数字和特殊字符。</small></label>
+            <label>再次输入<input name="confirmation" type="password" autoComplete="new-password" minLength={8} maxLength={128} required /></label>
+            <button className="auth-primary" disabled={busy}>{busy ? "保存中…" : "保存新密码"}</button>
+            {error && <p className="auth-alert" role="alert">{error}</p>}
           </form>
         )}
-      </section>
-    </main>
+    </AuthFrame>
   );
 }

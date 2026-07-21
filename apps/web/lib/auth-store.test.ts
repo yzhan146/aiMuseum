@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   AuthError,
   hashPassword,
+  validatePassword,
   validateRegistration,
   verifyPassword,
 } from "./auth-store";
@@ -24,7 +25,7 @@ describe("account password storage", () => {
       validateRegistration({
         email: "  VISITOR@Example.COM ",
         displayName: " 小小历史家 ",
-        password: "十五个字符以上的密码短语 museum",
+        password: "Museum!2026",
       }),
     ).toMatchObject({
       email: "visitor@example.com",
@@ -35,8 +36,10 @@ describe("account password storage", () => {
       validateRegistration({
         email: "visitor@example.com",
         displayName: "访客",
-        password: "too-short",
+        password: "lowercase1!",
       }),
     ).toThrow(AuthError);
+
+    expect(validatePassword("Museum!2026")).toBe("Museum!2026");
   });
 });

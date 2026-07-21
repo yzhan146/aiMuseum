@@ -147,9 +147,9 @@ type DrawTransaction = {
 
 ## 7. LLM Provider
 
-MVP 使用受控服务端 Provider，人物包不能选择供应商。接口接收已检索 Claim、来源、人物边界、年龄段、当前人物记忆和近期线程；不接收其他人物私聊。配置缺失时开发环境明确显示规则模式，不伪装为模型回答。
+MVP 使用受控服务端 Provider，人物包不能选择供应商。对话采用 LLM-first：通过安全、提示词注入和时代错位检查后，即使没有命中 Claim 也可在人物身份与认知边界内回答。接口接收人物 Persona、相关的一跳关系、可选 Claim、年龄段、当前人物记忆和近期线程；不接收其他人物私聊。配置缺失时开发环境明确显示规则模式，不伪装为模型回答。
 
-首个实现支持 OpenAI-compatible HTTPS 配置：`MODEL_API_URL`, `MODEL_API_KEY`, `MODEL_NAME`。Key 只存在服务端环境变量；请求日志与 Browser 产物不得包含 Key。Provider 返回后仍执行 Claim ID 和边界核验。
+首个实现支持 OpenAI-compatible HTTPS 配置：`MODEL_API_URL`, `MODEL_API_KEY`, `MODEL_NAME`。Key 只存在服务端环境变量；请求日志与 Browser 产物不得包含 Key。Provider 返回后仍核验其声明使用的 Claim ID；无 Claim 的回答显示为“模型角色演绎”，有 Claim 的回答显示为“馆藏史料增强”。关系分为 `public-source` 与 `model-suggested`：后者只能使用不确定表达，不能声称亲自认识、通信或合作。
 
 ## 8. 安全、隐私与儿童保护
 

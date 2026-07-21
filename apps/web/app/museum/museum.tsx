@@ -107,7 +107,9 @@ export function Museum(){
 
   async function ask(){const question=input.trim();if(!question||busy||!threadId)return;setInput("");setBusy(true);setError("");const optimistic:Message={role:"user",content:question};setMessages(current=>[...current,optimistic]);try{
     const response=await fetch(`/api/threads/${threadId}/messages`,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:question,ageBand:"9-12",locale:"zh-CN"})});const result=await response.json();if(!response.ok)throw new Error(result.error??"回答失败");
-    setMessages(current=>[...current,{id:result.messageId,role:"character",content:result.answer,citations:result.citations,characterVersion:result.version,narrator:result.narratorNote}]);setRuntimeMode(result.mode==="cloud-model"?"云模型 · 史料核验":result.mode==="local-model"?"本地模型 · 史料核验":"规则模式 · 未配置模型 Key");await refreshThreads();
+    setMessages(current=>[...current,{id:result.messageId,role:"character",content:result.answer,citations:result.citations,characterVersion:result.version,narrator:result.narratorNote}]);
+    const evidence=Array.isArray(result.citations)&&result.citations.length>0;
+    setRuntimeMode(result.mode==="cloud-model"?(result.boundary?"云模型已连接 · 人物边界":evidence?"云模型 · 馆藏史料增强":"云模型 · 角色演绎"):result.mode==="local-model"?(evidence?"本地模型 · 馆藏史料增强":"本地模型 · 角色演绎"):"规则模式 · 未配置模型 Key");await refreshThreads();
   }catch(reason){setMessages(current=>current.slice(0,-1));setInput(question);setError(reason instanceof Error?reason.message:"回答失败")}finally{setBusy(false)}}
 
   const searchResults=useMemo(()=>{const query=search.trim();if(!query)return[];const direct=characters.filter(character=>character.name.toLowerCase().includes(query.toLowerCase()));const relationIds=new Set(direct.flatMap(character=>character.relationCharacterIds));const related=characters.filter(character=>relationIds.has(character.id)&&!direct.some(item=>item.id===character.id));return[...direct.map(character=>({character,reason:"姓名匹配"})),...related.map(character=>({character,reason:`与${direct[0]?.name??"搜索人物"}有正式关系线索`}))].slice(0,8)},[search,characters]);

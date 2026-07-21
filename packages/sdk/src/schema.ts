@@ -18,10 +18,21 @@ export const claimSchema = z.object({
   evidence: z.array(z.object({ sourceId: z.string(), locator: z.string().min(1), excerpt: z.string().max(1000).optional() })).min(1),
   topicIds: z.array(z.string()).default([]), approved: z.boolean(), perspective: z.enum(["character", "museum"]).default("character")
 }).refine(v => Boolean(v.objectId || v.value), "Claim requires objectId or value");
-export const relationshipSchema = z.object({ id: z.string(), fromId: z.string(), toId: z.string(), type: z.string(), claimIds: z.array(z.string()).min(1) });
+export const relationshipSchema = z.object({
+  id: z.string(), fromId: z.string(), toId: z.string(), type: z.string(),
+  direction: z.enum(["directed", "bidirectional"]).default("bidirectional"),
+  claimIds: z.array(z.string()).default([]),
+  firstKnownContact: z.string().optional(), places: z.array(z.string()).default([]), addressTerms: z.array(z.string()).default([]),
+  description: z.string().optional(), perspective: z.record(z.string()).default({}), confidence: z.number().min(0).max(1).default(.5),
+  provenance: z.enum(["public-source", "model-suggested"]).default("model-suggested"),
+  evidence: z.array(z.object({ sourceId: z.string(), locator: z.string().min(1) })).default([])
+});
 export const boundarySchema = z.object({ knowledgeCutoff: z.string(), allowedTopics: z.array(z.string()), limitedTopics: z.array(z.string()), forbiddenTopics: z.array(z.string()), unknownPatterns: z.array(z.string()).default([]), modernKnowledgePolicy: z.enum(["deny", "museum-narrator", "historical-analogy"]) });
 export const personaSchema = z.object({
   firstPerson: z.boolean().default(true), languages: z.array(localeSchema).min(1), tone: z.array(z.string()), values: z.array(z.string()),
+  identitySummary: z.string().optional(), knownDomains: z.array(z.string()).default([]), unknownDomains: z.array(z.string()).default([]),
+  historicalContext: z.string().optional(), speechStyle: z.string().optional(), emotionalRange: z.array(z.string()).default([]),
+  signaturePatterns: z.array(z.string()).default([]), avoidPatterns: z.array(z.string()).default([]),
   ageBands: z.record(z.object({ maxSentences: z.number().int().positive(), vocabulary: z.enum(["simple", "standard", "advanced"]), guidance: z.string() })),
   refusalStyle: z.string(), disclaimer: z.string(), examples: z.array(z.object({ question: z.string(), answer: z.string() })).default([])
 });
@@ -50,6 +61,8 @@ export const characterPackSchema = z.object({
   for (const rel of pack.relationships) {
     if (!entities.has(rel.fromId) || !entities.has(rel.toId)) ctx.addIssue({ code: "custom", message: `Invalid relationship ${rel.id}` });
     for (const id of rel.claimIds) if (!claims.has(id)) ctx.addIssue({ code: "custom", message: `Unknown relationship claim ${id}` });
+    for (const evidence of rel.evidence) if (!sources.has(evidence.sourceId)) ctx.addIssue({ code: "custom", message: `Unknown relationship source ${evidence.sourceId}` });
+    if (rel.provenance === "public-source" && !rel.claimIds.length && !rel.evidence.length) ctx.addIssue({ code: "custom", message: `Public relationship ${rel.id} requires evidence` });
   }
 });
 
@@ -57,3 +70,4 @@ export type CharacterPack = z.infer<typeof characterPackSchema>;
 export type Claim = z.infer<typeof claimSchema>;
 export type SourceRecord = z.infer<typeof sourceSchema>;
 export type Entity = z.infer<typeof entitySchema>;
+export type Relationship = z.infer<typeof relationshipSchema>;

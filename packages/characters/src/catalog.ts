@@ -34,6 +34,8 @@ export interface ExhibitHall {
   id: string;
   title: string;
   question: string;
+  guideTitle: string;
+  guideText: string;
   characterIds: string[];
 }
 
@@ -76,10 +78,10 @@ const person = (
   relationCharacterIds,
   portraitVariants: {
     cartoon: {
-      assetPath: ["robert-oppenheimer", "chien-shiung-wu"].includes(id) ? undefined : `/characters/cartoon/${id}.png`,
+      assetPath: `/characters/cartoon/${id}.png`,
       alt: `${name}的轻快版卡通头像`,
       representation: "artistic_interpretation",
-      sourceLabel: ["robert-oppenheimer", "chien-shiung-wu"].includes(id) ? "卡通形象待补充" : "AI Museum 卡通人物头像"
+      sourceLabel: "AI Museum 卡通人物头像"
     },
     realistic: {
       assetPath: `/characters/realistic/${id}.png`,
@@ -100,9 +102,9 @@ export const historicalPeriods: HistoricalPeriod[] = [
     theme: "tang",
     inquiry: "一个开放繁荣的帝国，为什么也会经历战争与巨大转折？",
     halls: [
-      { id: "tang-changan", title: "长安：诗人与世界城市", question: "一座都城怎样连接诗歌、宫廷与远方来客？", characterIds: ["li-bai", "du-fu", "wang-wei", "tang-xuanzong", "abe-no-nakamaro"] },
-      { id: "tang-buddhism", title: "佛法东行与丝路旅行", question: "旅行者怎样让知识跨越语言与海洋？", characterIds: ["xuanzang", "jianzhen", "abe-no-nakamaro"] },
-      { id: "tang-rebellion", title: "安史之乱：盛世为何转折", question: "繁荣的帝国为什么会突然陷入长期战争？", characterIds: ["tang-xuanzong", "an-lushan", "guo-ziyi", "yan-zhenqing", "du-fu", "yang-guifei"] }
+      { id: "tang-changan", title: "长安：诗人与世界城市", question: "一座都城怎样连接诗歌、宫廷与远方来客？", guideTitle: "在世界城市里，诗歌也是相遇的方式", guideText: "从长安的街市、宫廷和旅人出发，看看诗人怎样认识远方，也怎样把时代写进作品。", characterIds: ["li-bai", "du-fu", "wang-wei", "tang-xuanzong", "abe-no-nakamaro"] },
+      { id: "tang-buddhism", title: "佛法东行与丝路旅行", question: "旅行者怎样让知识跨越语言与海洋？", guideTitle: "一段旅程，怎样变成跨越国家的知识？", guideText: "跟随玄奘、鉴真与阿倍仲麻吕，看翻译、航海和求学如何把不同地区的人连接起来。", characterIds: ["xuanzang", "jianzhen", "abe-no-nakamaro"] },
+      { id: "tang-rebellion", title: "安史之乱：盛世为何转折", question: "繁荣的帝国为什么会突然陷入长期战争？", guideTitle: "从盛世走进转折，看看每个人的选择", guideText: "战争不只改变皇帝与将领，也改变诗人、官员和普通人的生活。这个展厅帮助你理解转折如何发生。", characterIds: ["tang-xuanzong", "an-lushan", "guo-ziyi", "yan-zhenqing", "du-fu", "yang-guifei"] }
     ],
     characters: [
       person("wu-zetian", "tang-east-asia", "武则天", "武", "624–705", "0624-01-01", "0705-12-16", "orange", "时代人物", "皇帝、政治制度与女性权力", ["tang-xuanzong", "xuanzang"]),
@@ -128,9 +130,9 @@ export const historicalPeriods: HistoricalPeriod[] = [
     theme: "renaissance",
     inquiry: "艺术、印刷和观察，怎样共同改变人们理解世界的方式？",
     halls: [
-      { id: "renaissance-florence", title: "佛罗伦萨：艺术为何需要赞助人", question: "一件杰作背后有哪些权力、金钱和学习网络？", characterIds: ["leonardo-da-vinci", "michelangelo", "lorenzo-medici", "machiavelli"] },
-      { id: "renaissance-rome", title: "罗马工作坊：大师如何竞争", question: "竞争会怎样改变艺术家的作品与地位？", characterIds: ["michelangelo", "raphael", "sofonisba-anguissola"] },
-      { id: "renaissance-observation", title: "从日心说到望远镜", question: "新证据如何挑战人们熟悉的宇宙？", characterIds: ["copernicus", "galileo", "johannes-kepler", "andreas-vesalius", "johannes-gutenberg"] }
+      { id: "renaissance-florence", title: "佛罗伦萨：艺术为何需要赞助人", question: "一件杰作背后有哪些权力、金钱和学习网络？", guideTitle: "杰作不只来自天才，也来自一座城市", guideText: "艺术家、工匠、商人和统治者共同塑造了佛罗伦萨。顺着他们的关系，看一件作品怎样真正诞生。", characterIds: ["leonardo-da-vinci", "michelangelo", "lorenzo-medici", "machiavelli"] },
+      { id: "renaissance-rome", title: "罗马工作坊：大师如何竞争", question: "竞争会怎样改变艺术家的作品与地位？", guideTitle: "同一座城市里，大师既合作也竞争", guideText: "从委托、工作坊和名声出发，理解米开朗琪罗、拉斐尔等人如何在比较与挑战中形成自己的风格。", characterIds: ["michelangelo", "raphael", "sofonisba-anguissola"] },
+      { id: "renaissance-observation", title: "从日心说到望远镜", question: "新证据如何挑战人们熟悉的宇宙？", guideTitle: "当观察、印刷与计算带来新的证据", guideText: "旧观点不会因为一句反对就消失。这个展厅展示新工具、新数据和公开讨论怎样逐步改变人们理解世界的方式。", characterIds: ["copernicus", "galileo", "johannes-kepler", "andreas-vesalius", "johannes-gutenberg"] }
     ],
     characters: [
       person("leonardo-da-vinci", "renaissance-science", "达·芬奇", "达", "1452–1519", "1452-04-15", "1519-05-02", "gold", "典藏人物", "艺术、工程与观察", ["michelangelo", "isabella-deste", "lorenzo-medici"]),
@@ -156,9 +158,9 @@ export const historicalPeriods: HistoricalPeriod[] = [
     theme: "physics",
     inquiry: "科学家如何重新理解自然，又怎样面对战争与社会责任？",
     halls: [
-      { id: "physics-solvay", title: "索尔维会议：自然是概率的吗", question: "科学家为什么会对同一组实验产生不同解释？", characterIds: ["albert-einstein", "niels-bohr", "max-planck", "marie-curie", "werner-heisenberg", "erwin-schrodinger"] },
-      { id: "physics-atom", title: "原子内部：理论与实验", question: "一个看不见的原子结构怎样被实验逐步发现？", characterIds: ["ernest-rutherford", "niels-bohr", "marie-curie", "lise-meitner", "chien-shiung-wu"] },
-      { id: "physics-responsibility", title: "流亡、战争与科学责任", question: "当科学进入战争，研究者应当承担什么责任？", characterIds: ["albert-einstein", "niels-bohr", "lise-meitner", "robert-oppenheimer"] }
+      { id: "physics-solvay", title: "索尔维会议：自然是概率的吗", question: "科学家为什么会对同一组实验产生不同解释？", guideTitle: "同一组实验，为什么会带来不同答案？", guideText: "走进一场影响深远的科学讨论，看看爱因斯坦、玻尔等人如何用问题、思想实验和证据彼此挑战。", characterIds: ["albert-einstein", "niels-bohr", "max-planck", "marie-curie", "werner-heisenberg", "erwin-schrodinger"] },
+      { id: "physics-atom", title: "原子内部：理论与实验", question: "一个看不见的原子结构怎样被实验逐步发现？", guideTitle: "从实验留下的痕迹，拼出看不见的原子", guideText: "理论提出可能的图景，实验负责检验。顺着散射、放射性与衰变实验，看看原子结构如何一步步清晰。", characterIds: ["ernest-rutherford", "niels-bohr", "marie-curie", "lise-meitner", "chien-shiung-wu"] },
+      { id: "physics-responsibility", title: "流亡、战争与科学责任", question: "当科学进入战争，研究者应当承担什么责任？", guideTitle: "知识越强大，选择就越重要", guideText: "从流亡、战争与原子时代的真实经历出发，看看科学家如何面对国家、生命、权力与个人责任。", characterIds: ["albert-einstein", "niels-bohr", "lise-meitner", "robert-oppenheimer"] }
     ],
     characters: [
       person("max-planck", "physics-revolution", "马克斯·普朗克", "P", "1858–1947", "1858-04-23", "1947-10-04", "purple", "核心人物", "量子概念的开端", ["albert-einstein", "niels-bohr"]),

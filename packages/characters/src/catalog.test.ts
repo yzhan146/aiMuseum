@@ -26,18 +26,27 @@ describe("historical catalog", () => {
   });
 
   it("provides independently licensed cartoon and realistic portrait slots", () => {
-    const missingCartoons = new Set(["robert-oppenheimer", "chien-shiung-wu"]);
     for (const character of catalogCharacters) {
       expect(character.portraitVariants.cartoon.alt).toContain(character.name);
       expect(character.portraitVariants.realistic.alt).toContain(character.name);
       expect(character.portraitVariants.cartoon.representation).toBe("artistic_interpretation");
       expect(character.portraitVariants.realistic.representation).toBe("evidence_based_reconstruction");
       expect(character.portraitVariants.cartoon.assetPath).toBe(
-        missingCartoons.has(character.id)
-          ? undefined
-          : `/characters/cartoon/${character.id}.png`,
+        `/characters/cartoon/${character.id}.png`,
       );
       expect(character.portraitVariants.realistic.assetPath).toBe(`/characters/realistic/${character.id}.png`);
+    }
+  });
+
+  it("gives every hall a visitor-facing introduction without implementation jargon", () => {
+    for (const period of historicalPeriods) {
+      for (const hall of period.halls) {
+        expect(hall.guideTitle.length).toBeGreaterThan(10);
+        expect(hall.guideText.length).toBeGreaterThan(25);
+        expect(`${hall.guideTitle}${hall.guideText}`).not.toMatch(
+          /Claim|Prompt|system|模型|服务端|人物包|API|Key/i,
+        );
+      }
     }
   });
 

@@ -1,8 +1,4 @@
-function baseUrl() {
-  const value = process.env.APP_BASE_URL?.trim().replace(/\/$/, "");
-  if (!value) throw new Error("APP_BASE_URL is not configured");
-  return value;
-}
+import { applicationUrl } from "./public-url";
 
 function sender() {
   return (
@@ -39,7 +35,9 @@ function template(title: string, body: string, href: string, action: string) {
 }
 
 export async function sendVerificationEmail(email: string, token: string) {
-  const href = `${baseUrl()}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
+  const href = applicationUrl(
+    `/api/auth/verify-email?token=${encodeURIComponent(token)}`,
+  );
   return send(
     email,
     "验证你的 AI Museum 邮箱",
@@ -54,7 +52,9 @@ export async function sendVerificationEmail(email: string, token: string) {
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {
-  const href = `${baseUrl()}/account/reset?token=${encodeURIComponent(token)}`;
+  const href = applicationUrl(
+    `/account/reset?token=${encodeURIComponent(token)}`,
+  );
   return send(
     email,
     "重置你的 AI Museum 密码",

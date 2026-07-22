@@ -34,6 +34,8 @@ Render Web Service 使用以下配置：
 5. 回到 Render 点击验证并等待 TLS 证书签发。
 6. HTTPS 可访问后，把 `APP_BASE_URL` 改为 `https://museum.example.com`，保存并重新部署。
 
+`APP_BASE_URL` 必须是用户实际访问的公开 HTTPS 域名，不能填写 Render 内部端口、`localhost` 或 `127.0.0.1`。邮箱验证成功和密码重置完成后的跳转也统一使用这个地址。
+
 不要在证书生效前修改 `APP_BASE_URL`，否则验证邮箱和重置密码邮件会指向尚不可访问的地址。
 
 ## 4. Resend 邮件 DNS

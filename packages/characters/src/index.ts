@@ -3,6 +3,7 @@ import { catalogCharacterById, catalogCharacters, historicalPeriodById, type Cat
 import { characterPersona, characterRelationship, publicRelationshipSources } from "./profiles.js";
 export * from "./catalog.js";
 export * from "./exhibits.js";
+export * from "./hall-scenes.js";
 export * from "./profiles.js";
 
 const author = { id: "ai-museum", name: "AI Museum Contributors" };

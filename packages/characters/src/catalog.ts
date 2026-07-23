@@ -37,6 +37,7 @@ export interface ExhibitHall {
   guideTitle: string;
   guideText: string;
   characterIds: string[];
+  sceneRef?: { exhibitPackId: string; version: string };
 }
 
 export interface HistoricalPeriod {

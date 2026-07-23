@@ -9,6 +9,7 @@ AI Museum 不是把人物写死在应用里，也不为每个人物训练独立�
 ## 现在可以体验什么
 
 - 按历史时期、地点和人物关系探索3组共36位样例人物；
+- 进入9个数据驱动的沉浸式展厅，沿“入口—物件—人物关系—离场问题”完成参观；
 - 在“轻快版”和“典藏版”之间切换，功能和史实不变；
 - 与每位人物保持相互隔离的长期线程和关系记忆；
 - 查看回答使用的 Claim、来源位置、人物关系来源和人物包版本；没有馆藏支持时明确标记为模型角色演绎；
@@ -20,8 +21,8 @@ AI Museum 不是把人物写死在应用里，也不为每个人物训练独立�
 ```text
 apps/web          Next.js 访客端、维护者创作台与 API
 apps/worker       可恢复的后台任务 Worker
-packages/sdk      人物包 Schema、适配器与公共类型
-packages/characters  本地预览人物目录
+packages/sdk      人物包、展厅包 Schema、适配器与公共类型
+packages/characters  本地预览人物目录与9个首发展厅包
 infra/migrations  PostgreSQL 数据结构
 docs              产品、设计、架构与许可文档
 ```

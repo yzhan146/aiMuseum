@@ -9,6 +9,7 @@ import type {
   ConversationThread,
   MasteryRecord,
   MemoryRecord,
+  HallVisitState,
   ThreadEpoch,
 } from "@ai-museum/sdk";
 import { databaseEnabled, query as dbQuery, transaction } from "./database";
@@ -58,6 +59,7 @@ interface PlatformState {
   collections: CollectionRecord[];
   learningEvents: LearningEventRecord[];
   draws: DrawRecord[];
+  hallVisits: HallVisitState[];
 }
 const empty = (): PlatformState => ({
   threads: [],
@@ -70,6 +72,7 @@ const empty = (): PlatformState => ({
   collections: [],
   learningEvents: [],
   draws: [],
+  hallVisits: [],
 });
 const runtimeDir = path.join(process.cwd(), "..", "..", "data", "runtime");
 const stateFile = path.join(
@@ -1034,6 +1037,65 @@ export async function getArtifact(id: string, userId: string) {
   return result.rows[0] ? asArtifact(result.rows[0]) : null;
 }
 
+function asHallVisit(row: Record<string, any>): HallVisitState {
+  return {
+    userId: row.user_id,
+    hallId: row.hall_id,
+    sceneVersion: row.scene_version,
+    lastStationId: row.last_station_id,
+    viewedObjectIds: row.viewed_object_ids ?? [],
+    visitedCharacterIds: row.visited_character_ids ?? [],
+    completedStationIds: row.completed_station_ids ?? [],
+    startedAt: iso(row.started_at)!,
+    updatedAt: iso(row.updated_at)!,
+    completedAt: iso(row.completed_at),
+    revision: row.revision,
+  };
+}
+
+export async function getHallVisit(userId: string, hallId: string) {
+  if (!databaseEnabled) return platform.hallVisits.find((item) => item.userId === userId && item.hallId === hallId) ?? null;
+  const result = await dbQuery("SELECT * FROM hall_visit_states WHERE user_id=$1 AND hall_id=$2", [userId, hallId]);
+  return result.rows[0] ? asHallVisit(result.rows[0]) : null;
+}
+
+export async function saveHallVisit(input: Omit<HallVisitState, "userId" | "startedAt" | "updatedAt" | "revision"> & { userId: string; expectedRevision?: number }) {
+  const now = new Date().toISOString();
+  if (!databaseEnabled) {
+    const current = platform.hallVisits.find((item) => item.userId === input.userId && item.hallId === input.hallId);
+    if (current && input.expectedRevision !== undefined && input.expectedRevision !== current.revision) return { state: current, conflict: true };
+    const state: HallVisitState = {
+      userId: input.userId,
+      hallId: input.hallId,
+      sceneVersion: input.sceneVersion,
+      lastStationId: input.lastStationId,
+      viewedObjectIds: [...new Set([...(current?.viewedObjectIds ?? []), ...input.viewedObjectIds])],
+      visitedCharacterIds: [...new Set([...(current?.visitedCharacterIds ?? []), ...input.visitedCharacterIds])],
+      completedStationIds: [...new Set([...(current?.completedStationIds ?? []), ...input.completedStationIds])],
+      startedAt: current?.startedAt ?? now,
+      updatedAt: now,
+      completedAt: input.completedAt ?? current?.completedAt,
+      revision: (current?.revision ?? 0) + 1,
+    };
+    if (current) platform.hallVisits[platform.hallVisits.indexOf(current)] = state; else platform.hallVisits.push(state);
+    persist();
+    return { state, conflict: false };
+  }
+  await ensureUser(input.userId);
+  const current = await getHallVisit(input.userId, input.hallId);
+  if (current && input.expectedRevision !== undefined && input.expectedRevision !== current.revision) return { state: current, conflict: true };
+  const viewed = [...new Set([...(current?.viewedObjectIds ?? []), ...input.viewedObjectIds])];
+  const visited = [...new Set([...(current?.visitedCharacterIds ?? []), ...input.visitedCharacterIds])];
+  const completed = [...new Set([...(current?.completedStationIds ?? []), ...input.completedStationIds])];
+  const result = await dbQuery(
+    `INSERT INTO hall_visit_states(user_id,hall_id,scene_version,last_station_id,viewed_object_ids,visited_character_ids,completed_station_ids,started_at,updated_at,completed_at,revision)
+     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,1)
+     ON CONFLICT(user_id,hall_id) DO UPDATE SET scene_version=excluded.scene_version,last_station_id=excluded.last_station_id,viewed_object_ids=excluded.viewed_object_ids,visited_character_ids=excluded.visited_character_ids,completed_station_ids=excluded.completed_station_ids,updated_at=excluded.updated_at,completed_at=COALESCE(excluded.completed_at,hall_visit_states.completed_at),revision=hall_visit_states.revision+1 RETURNING *`,
+    [input.userId, input.hallId, input.sceneVersion, input.lastStationId, JSON.stringify(viewed), JSON.stringify(visited), JSON.stringify(completed), current?.startedAt ?? now, now, input.completedAt ?? null],
+  );
+  return { state: asHallVisit(result.rows[0]), conflict: false };
+}
+
 export async function mergeGuestIntoUser(guestId: string, userId: string) {
   if (guestId === userId) return;
   if (!databaseEnabled) {
@@ -1098,6 +1160,17 @@ export async function mergeGuestIntoUser(guestId: string, userId: string) {
     platform.draws
       .filter((item) => item.userId === guestId)
       .forEach((item) => (item.userId = userId));
+    for (const visit of platform.hallVisits.filter((item) => item.userId === guestId)) {
+      const target = platform.hallVisits.find((item) => item.userId === userId && item.hallId === visit.hallId);
+      if (target) {
+        target.viewedObjectIds = [...new Set([...target.viewedObjectIds, ...visit.viewedObjectIds])];
+        target.visitedCharacterIds = [...new Set([...target.visitedCharacterIds, ...visit.visitedCharacterIds])];
+        target.completedStationIds = [...new Set([...target.completedStationIds, ...visit.completedStationIds])];
+        target.updatedAt = target.updatedAt > visit.updatedAt ? target.updatedAt : visit.updatedAt;
+        target.revision++;
+        platform.hallVisits.splice(platform.hallVisits.indexOf(visit), 1);
+      } else visit.userId = userId;
+    }
     persist();
     return;
   }
@@ -1217,6 +1290,14 @@ export async function mergeGuestIntoUser(guestId: string, userId: string) {
     );
     await client.query(
       "UPDATE character_draws SET user_id=$1 WHERE user_id=$2",
+      [userId, guestId],
+    );
+    await client.query(
+      "DELETE FROM hall_visit_states g USING hall_visit_states u WHERE g.user_id=$1 AND u.user_id=$2 AND g.hall_id=u.hall_id",
+      [guestId, userId],
+    );
+    await client.query(
+      "UPDATE hall_visit_states SET user_id=$1 WHERE user_id=$2",
       [userId, guestId],
     );
   });

@@ -6,7 +6,13 @@ import { SESSION_COOKIE } from "./identity";
 
 export async function currentAccount(): Promise<AccountView | null> {
   const cookieStore = await cookies();
-  if (!databaseEnabled) return null;
+  if (!databaseEnabled) {
+    // Explicit test-only bypass used by the headless browser suite; never configure this in a deployed service.
+    if (process.env.NODE_ENV !== "production" && process.env.E2E_TEST_ACCOUNT === "true") {
+      return { userId: "e2e-visitor", email: "visitor@example.test", displayName: "测试访客", emailVerified: true };
+    }
+    return null;
+  }
   const raw = cookieStore.get(SESSION_COOKIE)?.value;
   if (!raw) return null;
   try {

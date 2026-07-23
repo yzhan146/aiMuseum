@@ -1,5 +1,5 @@
 import { randomInt, randomUUID } from "node:crypto";
-import { catalogCharacterById, historicalPeriodById, historicalPeriods, type CatalogCharacter, type CharacterTier } from "@ai-museum/characters";
+import { catalogCharacterById, historicalPeriodById, historicalPeriods, publishedExhibitPackByHallId, type CatalogCharacter, type CharacterTier } from "@ai-museum/characters";
 import { addDraw, addLearningEvent, findCharacterLearningEvent, findDraw, findLearningEvent, getOrCreateCollection, latestCommittedDraw, revealStoredDraw, saveCollection, type DrawRecord, type LearningEventRecord } from "./platform-store";
 
 const rewardByType: Record<LearningEventRecord["type"], number> = { evidence_viewed: 0, encounter_completed: 20, meaningful_question: 20 };
@@ -7,7 +7,21 @@ const tierWeight: Record<CharacterTier, number> = { white: 35, blue: 30, purple:
 
 export async function explorationSnapshot(userId: string) {
   const collection = await getOrCreateCollection(userId);
-  return { periods: historicalPeriods, collection, pendingDraw: await latestCommittedDraw(userId) };
+  const periods = historicalPeriods.map((period) => ({
+    ...period,
+    halls: period.halls.map((hall) => {
+      const pack = publishedExhibitPackByHallId(hall.id);
+      const asset = pack?.assets.find((item) => item.id === pack.hall.theme.lightAssetId);
+      const object = pack?.objects.find((item) => item.id === pack.hall.entrance.anchorObjectId);
+      return {
+        ...hall,
+        ...(pack ? { sceneRef: { exhibitPackId: pack.manifest.id, version: pack.manifest.version } } : {}),
+        ...(asset ? { previewAsset: asset.path } : {}),
+        ...(object ? { anchorObjectLabel: object.name } : {}),
+      };
+    }),
+  }));
+  return { periods, collection, pendingDraw: await latestCommittedDraw(userId) };
 }
 
 export async function recordLearningEvent(userId: string, input: { characterId: string; periodId: string; type: LearningEventRecord["type"]; idempotencyKey: string }) {

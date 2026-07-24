@@ -9,7 +9,8 @@
     "build": "npm run build -w @ai-museum/sdk && npm run build -w @ai-museum/characters && npm run build -w @ai-museum/worker && npm run build -w @ai-museum/web",
     "db:migrate": "node scripts/migrate.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "test": "npm run build -w @ai-museum/sdk && npm run build -w @ai-museum/characters && npm run test --workspaces --if-present"
+    "test": "npm run build -w @ai-museum/sdk && npm run build -w @ai-museum/characters && npm run test --workspaces --if-present",
+    "test:integration:postgres": "node scripts/run-postgres-integration.mjs"
   },
   "engines": { "node": ">=20" }
 }

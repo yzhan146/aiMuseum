@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   AuthError,
+  LOCAL_TEST_ACCOUNT,
+  createSession,
   hashPassword,
+  localTestAccountEnabled,
+  loginAccount,
+  resolveSession,
+  revokeSession,
   validatePassword,
   validateRegistration,
   verifyPassword,
@@ -41,5 +47,29 @@ describe("account password storage", () => {
     ).toThrow(AuthError);
 
     expect(validatePassword("Museum!2026")).toBe("Museum!2026");
+  });
+
+  it("provides a session-capable test account only outside production", async () => {
+    expect(localTestAccountEnabled({ NODE_ENV: "development" })).toBe(true);
+    expect(localTestAccountEnabled({ NODE_ENV: "production" })).toBe(false);
+
+    const account = await loginAccount(
+      LOCAL_TEST_ACCOUNT.email,
+      LOCAL_TEST_ACCOUNT.password,
+    );
+    expect(account).toMatchObject({
+      userId: LOCAL_TEST_ACCOUNT.userId,
+      email: LOCAL_TEST_ACCOUNT.email,
+      emailVerified: true,
+    });
+
+    const raw = await createSession(account.userId);
+    const session = await resolveSession(raw);
+    expect(session?.account).toMatchObject(account);
+    await revokeSession(session!.sessionId, account.userId);
+    await expect(resolveSession(raw)).resolves.toBeNull();
+    await expect(
+      loginAccount(LOCAL_TEST_ACCOUNT.email, "wrong-password"),
+    ).rejects.toMatchObject({ code: "INVALID_CREDENTIALS", status: 401 });
   });
 });

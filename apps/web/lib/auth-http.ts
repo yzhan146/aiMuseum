@@ -4,7 +4,9 @@ const attempts = new Map<string, { count: number; resetAt: number }>();
 
 export function enforceSameOrigin(request: Request) {
   const origin = request.headers.get("origin");
-  if (!origin) return;
+  if (!origin) {
+    throw new AuthError("INVALID_ORIGIN", "请求缺少来源信息", 403);
+  }
   const expected = new URL(
     process.env.APP_BASE_URL?.trim() || request.url,
   ).origin;

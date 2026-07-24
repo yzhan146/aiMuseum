@@ -1,10 +1,11 @@
 import type { CharacterPack, Claim, Entity, SourceRecord } from "./schema.js";
+import type { RelationshipPublicState } from "./relationship.js";
 export interface CharacterVersion { characterId: string; version: string; status: CharacterPack["manifest"]["status"]; createdAt: string; publishedAt?: string }
 export interface ChatRequest { characterId: string; version?: string; ageBand: string; locale: string; message: string; previewToken?: string; sessionId?: string }
 export interface Citation { sourceId: string; title: string; locator: string; url?: string }
 export interface MemoryCallback { memoryId: string; text: string; confidence: number }
 export interface MasteryPrompt { topicId: string; prompt: string; currentLevel: MasteryLevel }
-export interface ChatResult { answer: string; classification: string; boundary: boolean; claimIds: string[]; citations: Citation[]; narratorNote?: string; suggestions: string[]; version: string; messageId?: string; threadId?: string; memoryCallbacks?: MemoryCallback[]; masteryPrompt?: MasteryPrompt; mode?: "rules" | "local-model" | "cloud-model" }
+export interface ChatResult { answer: string; classification: string; boundary: boolean; claimIds: string[]; citations: Citation[]; narratorNote?: string; suggestions: string[]; version: string; messageId?: string; threadId?: string; memoryCallbacks?: MemoryCallback[]; masteryPrompt?: MasteryPrompt; mode?: "rules" | "local-model" | "cloud-model"; relationship?: RelationshipPublicState }
 export interface ModelProvider { generate(request: ChatRequest, context: { pack: CharacterPack; claims: Claim[]; sources: SourceRecord[] }): Promise<ChatResult> }
 export interface EmbeddingProvider { embed(texts: string[]): Promise<number[][]> }
 export interface TranscriptionProvider { transcribe(input: Uint8Array, mimeType: string): Promise<{ text: string; segments: Array<{ start: number; end: number; text: string }> }> }

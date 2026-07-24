@@ -1,0 +1,27 @@
+.auth-local-account {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 20px;
+  padding: 13px 15px;
+  border: 1px solid #d4b554;
+  border-radius: 12px;
+  background: #fff8d9;
+  color: #5e4a10;
+}
+
+.auth-local-account strong {
+  color: #8a4b14;
+}
+
+.auth-local-account span {
+  font-size: 13px;
+}
+
+.auth-local-account code {
+  font-weight: 800;
+  color: #18304b;
+}
+
+.auth-local-account small {
+  color: #6f6241;
+}

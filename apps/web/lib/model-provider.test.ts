@@ -20,10 +20,27 @@ describe("character system prompt", () => {
 
   it("encodes identity, lifetime, voice and epistemic limits", () => {
     const prompt = buildCharacterSystemPrompt(liBai, request);
-    expect(prompt).toContain("你正在扮演历史人物李白");
+    expect(prompt).toContain("李白数字角色，不是历史人物本人");
+    expect(prompt).toContain("是否为 AI");
     expect(prompt).toContain("严格截止于0762-12-01");
     expect(prompt).toContain("澎湃");
     expect(prompt).toContain("不得解释其现代原理");
     expect(prompt).toContain("杜甫");
+  });
+
+  it("injects relationship behavior and a consented address without exposing thresholds", () => {
+    const prompt = buildCharacterSystemPrompt(liBai, request, [], [], {
+      recalledMemories: [],
+      relationship: {
+        stage: "young_friend",
+        status: "active",
+        behaviorContract: ["可以更主动邀请用户表达判断。"],
+        preferredAddress: { value: "青莲客", consentVersion: 1 },
+        sharedMoments: [], recurringTopics: ["诗与仕途"], priorViewpoints: [],
+      },
+    });
+    expect(prompt).toContain("young_friend");
+    expect(prompt).toContain("青莲客");
+    expect(prompt).toContain("不得提及内部数值、门槛、权重或晋级攻略");
   });
 });

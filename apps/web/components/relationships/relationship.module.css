@@ -1,0 +1,409 @@
+.chip.chip,
+.stageBadge.stageBadge {
+  --relationship-fg: #5b6873;
+  --relationship-bg: #f2f5f7;
+  display: inline-flex;
+  min-width: 0;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 14px;
+  border: 1px solid var(--relationship-fg);
+  border-radius: 999px;
+  background: var(--relationship-bg);
+  color: var(--relationship-fg);
+  font: inherit;
+  font-weight: 850;
+  line-height: 1.35;
+  text-align: center;
+  white-space: normal;
+}
+
+button.chip {
+  cursor: pointer;
+}
+
+.chip:focus-visible,
+.closeButton:focus-visible,
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.quietButton:focus-visible,
+.dangerButton:focus-visible,
+.textInput:focus-visible {
+  outline: 3px solid var(--relationship-fg, #326b75);
+  outline-offset: 3px;
+}
+
+.chipLoading,
+.chipUnavailable,
+.stageLoading,
+.unavailableStatus {
+  border-color: var(--v-line, #c9dce8);
+  background: var(--v-paper, #fffdf8);
+  color: var(--v-muted, #62798d);
+}
+
+.chipLoading {
+  min-width: 190px;
+}
+
+.skeletonBar {
+  width: 138px;
+  height: 0.85em;
+  border-radius: 999px;
+  background: #d8e1e6;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.milestone {
+  --relationship-fg: #326b75;
+  --relationship-bg: #dceeea;
+  max-width: 610px;
+  margin: 18px auto;
+  padding: 17px 18px;
+  border: 1px solid var(--relationship-fg);
+  border-radius: 18px;
+  background: var(--relationship-bg);
+  color: var(--v-ink, #17324b);
+}
+
+.milestone small {
+  color: var(--relationship-fg);
+  font-weight: 850;
+}
+
+.milestone h3 {
+  margin: 5px 0;
+  color: var(--v-ink, #17324b);
+  font-size: 1.2rem;
+}
+
+.milestone p {
+  margin: 6px 0 0;
+  color: var(--v-muted, #52697c);
+  line-height: 1.65;
+}
+
+.drawerBackdrop {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(10, 28, 42, 0.52);
+}
+
+.drawer {
+  width: min(470px, 100%);
+  height: 100%;
+  overflow: auto;
+  padding: 28px;
+  border: 0;
+  background: var(--v-paper, #fffdf8);
+  color: var(--v-ink, #17324b);
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.2);
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.drawerHeader h2,
+.dialogContent h2 {
+  margin: 6px 0;
+  color: var(--v-ink, #17324b);
+  font-family: Georgia, "Noto Serif SC", serif;
+  font-size: clamp(1.7rem, 5vw, 2.1rem);
+  line-height: 1.2;
+}
+
+.eyebrow {
+  color: var(--v-muted, #62798d);
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.closeButton.closeButton {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border: 1px solid var(--v-line, #c9dce8);
+  border-radius: 50%;
+  background: var(--v-paper, #fff);
+  color: var(--v-ink, #17324b);
+  font: inherit;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.drawerBlock {
+  padding: 20px 0;
+  border-top: 1px solid var(--v-line, #c9dce8);
+}
+
+.drawerBlock:first-of-type {
+  margin-top: 18px;
+}
+
+.drawerBlock h3 {
+  margin: 0;
+  color: var(--v-ink, #17324b);
+  font-size: 1rem;
+}
+
+.drawerBlock p,
+.dialogContent p {
+  color: var(--v-muted, #52697c);
+  line-height: 1.65;
+}
+
+.stageBadge {
+  min-height: 40px;
+  padding: 7px 12px;
+}
+
+.stageLoading {
+  min-width: 145px;
+}
+
+.unavailableStatus {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  padding: 7px 12px;
+  border: 1px solid var(--v-line, #c9dce8);
+  border-radius: 12px;
+  font-weight: 750;
+}
+
+.changedAt {
+  margin: 9px 0 0;
+  font-size: 0.85rem;
+}
+
+.pausedNotice {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #d9aaa3;
+  border-radius: 12px;
+  background: #f4e8e4;
+  color: #71372f;
+  line-height: 1.55;
+}
+
+.inlineActions,
+.dialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.primaryButton,
+.secondaryButton,
+.quietButton,
+.dangerButton {
+  min-height: 48px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primaryButton.primaryButton {
+  border: 1px solid var(--v-ink, #17324b);
+  background: var(--v-ink, #17324b);
+  color: #fff;
+}
+
+.secondaryButton.secondaryButton {
+  border: 1px solid var(--v-line, #a9c5d6);
+  background: var(--v-paper, #fff);
+  color: var(--v-ink, #17324b);
+}
+
+.quietButton.quietButton {
+  border: 1px solid transparent;
+  background: #e9f2f7;
+  color: var(--v-ink, #17324b);
+}
+
+.dangerButton.dangerButton {
+  border: 1px solid #a3473e;
+  background: var(--v-paper, #fff);
+  color: #8a342c;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.quietButton:disabled,
+.dangerButton:disabled,
+.textInput:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.inlineError {
+  padding: 10px 12px;
+  border-left: 4px solid #a3473e;
+  border-radius: 7px;
+  background: #f9ece9;
+  color: #71372f !important;
+  font-weight: 700;
+}
+
+.nativeDialog {
+  width: min(500px, calc(100% - 30px));
+  max-height: calc(100dvh - 30px);
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  border-radius: 22px;
+  background: var(--v-paper, #fffdf8);
+  color: var(--v-ink, #17324b);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+}
+
+.nativeDialog::backdrop {
+  background: rgba(8, 25, 39, 0.58);
+}
+
+.dialogContent {
+  padding: 26px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  color: var(--v-ink, #17324b);
+  font-weight: 800;
+}
+
+.textInput {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--v-line, #a9c5d6);
+  border-radius: 11px;
+  background: #fff;
+  color: var(--v-ink, #17324b);
+  font: inherit;
+}
+
+.inputHint {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 7px;
+  color: var(--v-muted, #62798d);
+  font-size: 0.82rem;
+}
+
+.dialogActions {
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+@media (max-width: 640px) {
+  .chip {
+    max-width: 100%;
+  }
+
+  .drawerBackdrop {
+    align-items: flex-end;
+  }
+
+  .drawer {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    padding: 22px 18px max(22px, env(safe-area-inset-bottom));
+    border-radius: 20px 20px 0 0;
+  }
+
+  .dialogActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .dialogActions > button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip,
+  .milestone,
+  .drawerBackdrop,
+  .drawer,
+  .nativeDialog,
+  .primaryButton,
+  .secondaryButton,
+  .quietButton,
+  .dangerButton {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .chip,
+  .stageBadge,
+  .milestone,
+  .pausedNotice,
+  .unavailableStatus,
+  .inlineError {
+    border-color: ButtonText;
+    background: Canvas;
+    color: CanvasText;
+    forced-color-adjust: auto;
+  }
+
+  .milestone small,
+  .milestone h3,
+  .milestone p,
+  .pausedNotice,
+  .inlineError {
+    color: CanvasText !important;
+  }
+
+  .chip:focus-visible,
+  .closeButton:focus-visible,
+  .primaryButton:focus-visible,
+  .secondaryButton:focus-visible,
+  .quietButton:focus-visible,
+  .dangerButton:focus-visible,
+  .textInput:focus-visible {
+    outline-color: Highlight;
+  }
+
+  .primaryButton,
+  .secondaryButton,
+  .quietButton,
+  .dangerButton,
+  .closeButton {
+    border: 1px solid ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+  }
+
+  .skeletonBar {
+    background: GrayText;
+  }
+}

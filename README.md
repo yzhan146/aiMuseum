@@ -44,6 +44,13 @@ npm run dev
 npm run dev -- -p 3010
 ```
 
+本地开发模式会在登录页提供并预填一个测试账号：
+
+- 邮箱：`test@aimuseum.local`
+- 密码：`Museum!2026`
+
+该账号只在 `NODE_ENV !== production` 时启用。无 PostgreSQL 时使用进程内本地会话；连接本地 PostgreSQL 时也仅通过开发态专用逻辑登录。生产环境不会显示或接受这组开发凭据。
+
 ### 接入兼容模型 API
 
 将根目录的 `.env.example` 复制为 `apps/web/.env.local`，至少填写：
@@ -63,6 +70,42 @@ docker compose up -d
 ```
 
 这会启动 PostgreSQL/pgvector、Redis 和 MinIO。数据库迁移位于 `infra/migrations`。
+
+### 独立运行关系 Outbox Worker
+
+生产环境中的关系更新由独立 worker 异步处理，不会阻塞聊天请求。Web 服务和
+worker 必须配置相同的 `RELATIONSHIP_WORKER_SECRET`，并且 Web 服务必须启用
+`DATABASE_URL`；内部 drain 端点不会在本地 JSON store 模式下运行。
+Web 服务还必须用 `RELATIONSHIP_CANARY_CHARACTER_IDS` 指定允许自动提取证据和
+晋级的人物，例如首发只设置 `li-bai`。生产环境未配置或配置为空时自动化默认
+关闭；逗号分隔的 allowlist 之外的人物仍可正常聊天，但不会创建关系证据任务。
+生产环境还要求 Web 服务显式设置 `RELATIONSHIP_EVIDENCE_EXTRACTOR=model`，并
+提供 `MODEL_API_URL`、`MODEL_API_KEY` 和 `MODEL_NAME`；deterministic mock 只用于
+本地测试，在生产中会被拒绝。完成 Stage 4 真实模型 Eval 前不要打开该配置。
+
+先构建 worker：
+
+```bash
+npm run build -w @ai-museum/worker
+```
+
+再把它作为独立进程启动：
+
+```powershell
+$env:RUN_RELATIONSHIP_WORKER="true"
+$env:RELATIONSHIP_OUTBOX_BASE_URL="http://localhost:3000"
+$env:RELATIONSHIP_WORKER_SECRET="replace-with-the-same-long-random-secret"
+npm run start -w @ai-museum/worker
+```
+
+部署为独立后台进程时，启动命令仍是
+`npm run start -w @ai-museum/worker`。配置
+`RUN_RELATIONSHIP_WORKER=true`、Web 服务地址
+`RELATIONSHIP_OUTBOX_BASE_URL`、共享 secret，以及可选的
+`RELATIONSHIP_OUTBOX_BATCH_SIZE`（canary 默认 1，避免串行模型抽取超过单次请求超时）、
+`RELATIONSHIP_OUTBOX_POLL_MS`（默认 2000）和
+`RELATIONSHIP_OUTBOX_MAX_BACKOFF_MS`（默认 30000）。只运行关系 consumer
+时不需要 Redis；失败任务会按退避时间重试，超过 claim 租约的任务可被重新领取。
 
 ## 验证
 

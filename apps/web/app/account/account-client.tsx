@@ -30,6 +30,30 @@ export default function AccountClient({ account }: { account: Account }) {
     }
   }
 
+  async function deleteAccount() {
+    const confirmed = window.confirm(
+      "删除账户会永久移除人物对话、关系、记忆与学习数据，且无法恢复。确定继续吗？",
+    );
+    if (!confirmed) return;
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/account", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ confirmation: "DELETE_MY_ACCOUNT" }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error ?? "账户删除失败，请稍后再试");
+      }
+      window.location.assign("/");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "账户删除失败");
+      setBusy(false);
+    }
+  }
+
   return (
     <main className="account-shell">
       <section className="account-card account-profile">
@@ -52,6 +76,25 @@ export default function AccountClient({ account }: { account: Account }) {
           </button>
         </div>
         {error && <p className="account-error" role="alert">{error}</p>}
+      </section>
+      <section className="account-card" aria-labelledby="account-data-title">
+        <p className="account-eyebrow">数据与隐私</p>
+        <h2 id="account-data-title">管理你的账户数据</h2>
+        <p>
+          导出文件包含对话、长期记忆和内部关系记录；公开页面仍不会显示关系门槛或权重。
+        </p>
+        <div className="account-actions">
+          <a className="account-secondary" href="/api/account/export">
+            导出账户数据
+          </a>
+          <button
+            className="account-danger"
+            onClick={deleteAccount}
+            disabled={busy}
+          >
+            永久删除账户
+          </button>
+        </div>
       </section>
     </main>
   );

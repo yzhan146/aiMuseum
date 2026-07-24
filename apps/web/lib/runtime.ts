@@ -1,9 +1,10 @@
-import type { ChatRequest, ChatResult, CharacterPack, Citation, Claim, MasteryRecord, MemoryRecord } from "@ai-museum/sdk";
+import type { ChatRequest, ChatResult, CharacterPack, Citation, Claim, MasteryRecord, MemoryRecord, RelationshipRuntimeContext } from "@ai-museum/sdk";
 import { classifyQuestion, retrieveKnowledge } from "./knowledge";
 
-export interface GeneratedDraft { answer: string; claimIds: string[]; mode?: "rules" | "local-model" | "cloud-model" }
-export interface DialogueGenerator { readonly mode: "rules" | "local-model" | "cloud-model"; generate(pack: CharacterPack, request: ChatRequest, claims: Claim[]): Promise<GeneratedDraft> }
-export interface DialogueRuntimeContext { memories?: MemoryRecord[]; mastery?: MasteryRecord[] }
+export interface GeneratedDraft { answer: string; claimIds: string[]; usedMemoryIds?: string[]; mode?: "rules" | "local-model" | "cloud-model" }
+export interface DialogueGenerationContext { relationship?: RelationshipRuntimeContext; recalledMemories: MemoryRecord[] }
+export interface DialogueGenerator { readonly mode: "rules" | "local-model" | "cloud-model"; generate(pack: CharacterPack, request: ChatRequest, claims: Claim[], context?: DialogueGenerationContext): Promise<GeneratedDraft> }
+export interface DialogueRuntimeContext { memories?: MemoryRecord[]; mastery?: MasteryRecord[]; relationship?: RelationshipRuntimeContext }
 export class EvidenceFirstGenerator implements DialogueGenerator {
   readonly mode = "rules" as const;
   async generate(pack: CharacterPack, request: ChatRequest, claims: Claim[]): Promise<GeneratedDraft> {
@@ -40,10 +41,18 @@ function relationshipCitations(pack: CharacterPack, message: string): Citation[]
   return result;
 }
 export async function runDialogue(pack: CharacterPack, request: ChatRequest, generator: DialogueGenerator = new EvidenceFirstGenerator(), context: DialogueRuntimeContext = {}): Promise<ChatResult> {
+  if (/(?:你|您).{0,8}(?:是|是不是).{0,5}(?:ai|人工智能|真人)|(?:你|您).{0,5}(?:真的是|是真正的).{0,8}(?:本人|历史人物)/i.test(request.message)) {
+    const name = pack.manifest.name[pack.manifest.defaultLocale] ?? Object.values(pack.manifest.name)[0] ?? pack.manifest.id;
+    return { answer: `我是 AI Museum 依据史料与生成模型构建的${name}数字角色，不是历史人物本人。我会以人物视角进行教育性对话，并明确区分史料、推演与不知道的内容。`, classification: "身份透明", boundary: false, claimIds: [], citations: [], suggestions: pack.boundaries.allowedTopics.slice(0, 3), version: pack.manifest.version, mode: generator.mode };
+  }
   const selection = retrieveKnowledge(pack, request.message);
   if (selection.boundary) return boundaryResult(pack, selection.classification, selection.reason, generator.mode);
   if (!selection.claims.length && generator.mode === "rules") return boundaryResult(pack, "规则模式", "当前没有命中馆藏资料，且尚未配置可用模型", generator.mode);
-  const draft = await generator.generate(pack, request, selection.claims);
+  const memory = (context.memories ?? []).filter(item => item.confidence >= .6).map(item => ({ item, score: memoryScore(item, request.message) })).filter(item => item.score >= 2).sort((a, b) => b.score - a.score || b.item.importance - a.item.importance)[0]?.item;
+  const draft = await generator.generate(pack, request, selection.claims, { relationship: context.relationship, recalledMemories: memory ? [memory] : [] });
+  const availableMemories = new Map((memory ? [memory] : []).map(item => [item.id, item]));
+  const usedMemories = (draft.usedMemoryIds ?? []).map(id => availableMemories.get(id)).filter((item): item is MemoryRecord => Boolean(item));
+  if ((draft.usedMemoryIds?.length ?? 0) !== usedMemories.length) return boundaryResult(pack, "记忆来源核验失败", "生成内容声明使用了本轮未提供的记忆", draft.mode ?? generator.mode);
   const outputBoundary=classifyQuestion(pack,draft.answer);if(outputBoundary.classification==="after-lifetime")return boundaryResult(pack,"输出复检失败","生成内容越过了人物的时代认知边界",draft.mode??generator.mode);
   const allowed = new Map(selection.claims.map(claim => [claim.id, claim])); const verifiedClaims = draft.claimIds.map(id => allowed.get(id)).filter((claim): claim is Claim => Boolean(claim));
   if (draft.claimIds.length !== verifiedClaims.length) return boundaryResult(pack, "引用核验失败", "生成内容引用了检索范围之外的知识", draft.mode ?? generator.mode);
@@ -53,8 +62,6 @@ export async function runDialogue(pack: CharacterPack, request: ChatRequest, gen
   const claimCitations = verifiedClaims.flatMap(claim => claim.evidence.map(evidence => ({ sourceId: evidence.sourceId, title: sources.get(evidence.sourceId)?.title ?? evidence.sourceId, locator: evidence.locator, url: sources.get(evidence.sourceId)?.url }))).filter((citation, index, all) => sources.has(citation.sourceId) && all.findIndex(item => item.sourceId === citation.sourceId && item.locator === citation.locator) === index);
   if (verifiedClaims.length && !claimCitations.length) return boundaryResult(pack, "引用核验失败", "回答声明使用了馆藏 Claim，但没有可用来源定位", draft.mode ?? generator.mode);
   const citations=[...claimCitations,...relationshipCitations(pack,request.message)].filter((citation,index,all)=>all.findIndex(item=>item.sourceId===citation.sourceId&&item.locator===citation.locator)===index);
-  const memory = (context.memories ?? []).filter(item => item.confidence >= .6).map(item => ({ item, score: memoryScore(item, request.message) })).filter(item => item.score >= 2).sort((a, b) => b.score - a.score || b.item.importance - a.item.importance)[0]?.item;
-  const callback = memory ? `你还记得我们之前聊过这件事吗？${draft.answer}` : draft.answer;
   const topics = [...new Set(verifiedClaims.flatMap(claim => claim.topicIds))]; const mastery = topics.map(topic => context.mastery?.find(item => item.topicId === topic)).find(item => item?.level === "exposed");
-  return { answer: callback, classification: selection.classification === "limited-topic" ? "有限主题" : !verifiedClaims.length ? "模型角色演绎" : verifiedClaims.some(claim => claim.status === "disputed" || claim.status === "inference") ? "争议或推演" : "史料明确", boundary: false, claimIds: verifiedClaims.map(claim => claim.id), citations, suggestions: (topics.length ? topics : pack.boundaries.allowedTopics).slice(0, 3), version: pack.manifest.version, memoryCallbacks: memory ? [{ memoryId: memory.id, text: memory.content, confidence: memory.confidence }] : [], masteryPrompt: mastery ? { topicId: mastery.topicId, currentLevel: mastery.level, prompt: `关于${mastery.topicId}，你愿意用自己的话说说你是怎么理解的吗？` } : undefined, mode: draft.mode ?? generator.mode };
+  return { answer: draft.answer, classification: selection.classification === "limited-topic" ? "有限主题" : !verifiedClaims.length ? "模型角色演绎" : verifiedClaims.some(claim => claim.status === "disputed" || claim.status === "inference") ? "争议或推演" : "史料明确", boundary: false, claimIds: verifiedClaims.map(claim => claim.id), citations, suggestions: (topics.length ? topics : pack.boundaries.allowedTopics).slice(0, 3), version: pack.manifest.version, memoryCallbacks: usedMemories.map(item => ({ memoryId: item.id, text: item.content, confidence: item.confidence })), masteryPrompt: mastery ? { topicId: mastery.topicId, currentLevel: mastery.level, prompt: `关于${mastery.topicId}，你愿意用自己的话说说你是怎么理解的吗？` } : undefined, mode: draft.mode ?? generator.mode };
 }

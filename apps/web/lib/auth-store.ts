@@ -16,6 +16,44 @@ const VERIFY_MINUTES = 60;
 const RESET_MINUTES = 30;
 const SESSION_DAYS = 30;
 
+export const LOCAL_TEST_ACCOUNT = {
+  userId: "account:local-test",
+  email: "test@aimuseum.local",
+  displayName: "本地测试员",
+  password: "Museum!2026",
+} as const;
+
+type LocalAuthSession = {
+  id: string;
+  userId: string;
+  raw: string;
+  expiresAt: number;
+};
+
+const globalAuthStore = globalThis as typeof globalThis & {
+  __museumLocalAuthSessions?: Map<string, LocalAuthSession>;
+};
+
+function localAuthSessions() {
+  return (globalAuthStore.__museumLocalAuthSessions ??= new Map());
+}
+
+export function localTestAccountEnabled(
+  env: NodeJS.ProcessEnv = process.env,
+) {
+  return env.NODE_ENV !== "production";
+}
+
+export function localTestAccountCredentials() {
+  return localTestAccountEnabled()
+    ? {
+        email: LOCAL_TEST_ACCOUNT.email,
+        password: LOCAL_TEST_ACCOUNT.password,
+        displayName: LOCAL_TEST_ACCOUNT.displayName,
+      }
+    : null;
+}
+
 export type AccountView = {
   userId: string;
   email: string;
@@ -249,8 +287,76 @@ export async function verifyEmailToken(token: string) {
 }
 
 export async function loginAccount(emailValue: string, password: string) {
-  requireDatabase();
   const email = normalizeEmail(emailValue);
+  const localTestLogin =
+    localTestAccountEnabled() &&
+    email === LOCAL_TEST_ACCOUNT.email &&
+    password === LOCAL_TEST_ACCOUNT.password;
+  if (!databaseEnabled) {
+    if (!localTestLogin) {
+      throw new AuthError("INVALID_CREDENTIALS", "邮箱或密码不正确", 401);
+    }
+    return {
+      userId: LOCAL_TEST_ACCOUNT.userId,
+      email: LOCAL_TEST_ACCOUNT.email,
+      displayName: LOCAL_TEST_ACCOUNT.displayName,
+      emailVerified: true,
+    };
+  }
+  if (localTestLogin) {
+    const inertPasswordHash = await hashPassword(
+      randomBytes(32).toString("base64url"),
+    );
+    return transaction(async (client) => {
+      const existing = await client.query(
+        `SELECT c.user_id,c.email,p.display_name
+         FROM auth_credentials c
+         JOIN user_profiles p ON p.user_id=c.user_id
+         WHERE c.email=$1 FOR UPDATE OF c,p`,
+        [LOCAL_TEST_ACCOUNT.email],
+      );
+      if (existing.rows[0]) {
+        await client.query(
+          `UPDATE auth_credentials
+           SET email_verified_at=coalesce(email_verified_at,now()),updated_at=now()
+           WHERE user_id=$1`,
+          [existing.rows[0].user_id],
+        );
+        return {
+          userId: String(existing.rows[0].user_id),
+          email: LOCAL_TEST_ACCOUNT.email,
+          displayName: String(existing.rows[0].display_name),
+          emailVerified: true,
+        };
+      }
+      await client.query(
+        "INSERT INTO users(id) VALUES($1) ON CONFLICT(id) DO NOTHING",
+        [LOCAL_TEST_ACCOUNT.userId],
+      );
+      await client.query(
+        `INSERT INTO user_profiles(user_id,display_name)
+         VALUES($1,$2)
+         ON CONFLICT(user_id) DO UPDATE SET display_name=excluded.display_name`,
+        [LOCAL_TEST_ACCOUNT.userId, LOCAL_TEST_ACCOUNT.displayName],
+      );
+      await client.query(
+        `INSERT INTO auth_credentials(
+           user_id,email,password_hash,email_verified_at
+         ) VALUES($1,$2,$3,now())`,
+        [
+          LOCAL_TEST_ACCOUNT.userId,
+          LOCAL_TEST_ACCOUNT.email,
+          inertPasswordHash,
+        ],
+      );
+      return {
+        userId: LOCAL_TEST_ACCOUNT.userId,
+        email: LOCAL_TEST_ACCOUNT.email,
+        displayName: LOCAL_TEST_ACCOUNT.displayName,
+        emailVerified: true,
+      };
+    });
+  }
   const result = await query(
     "SELECT c.*,p.display_name FROM auth_credentials c JOIN user_profiles p ON p.user_id=c.user_id WHERE c.email=$1",
     [email],
@@ -289,10 +395,20 @@ export async function loginAccount(emailValue: string, password: string) {
 }
 
 export async function createSession(userId: string) {
-  requireDatabase();
   const id = randomUUID();
   const secret = randomBytes(32).toString("base64url");
   const raw = `${id}.${secret}`;
+  if (!databaseEnabled) {
+    if (!localTestAccountEnabled() || userId !== LOCAL_TEST_ACCOUNT.userId)
+      requireDatabase();
+    localAuthSessions().set(raw, {
+      id,
+      userId,
+      raw,
+      expiresAt: Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000,
+    });
+    return raw;
+  }
   await query(
     "INSERT INTO auth_sessions(id,user_id,secret_hash,expires_at) VALUES($1,$2,$3,now()+make_interval(days => $4))",
     [id, userId, tokenHash(raw), SESSION_DAYS],
@@ -301,7 +417,23 @@ export async function createSession(userId: string) {
 }
 
 export async function resolveSession(raw: string) {
-  requireDatabase();
+  if (!databaseEnabled) {
+    if (!localTestAccountEnabled()) requireDatabase();
+    const session = localAuthSessions().get(raw);
+    if (!session || session.expiresAt <= Date.now()) {
+      if (session) localAuthSessions().delete(raw);
+      return null;
+    }
+    return {
+      sessionId: session.id,
+      account: {
+        userId: LOCAL_TEST_ACCOUNT.userId,
+        email: LOCAL_TEST_ACCOUNT.email,
+        displayName: LOCAL_TEST_ACCOUNT.displayName,
+        emailVerified: true,
+      },
+    };
+  }
   const [id] = raw.split(".");
   if (!id) return null;
   const result = await query(
@@ -323,7 +455,14 @@ export async function resolveSession(raw: string) {
 }
 
 export async function revokeSession(sessionId: string, userId: string) {
-  requireDatabase();
+  if (!databaseEnabled) {
+    if (!localTestAccountEnabled()) requireDatabase();
+    for (const [raw, session] of localAuthSessions()) {
+      if (session.id === sessionId && session.userId === userId)
+        localAuthSessions().delete(raw);
+    }
+    return;
+  }
   await query(
     "UPDATE auth_sessions SET revoked_at=now() WHERE id=$1 AND user_id=$2",
     [sessionId, userId],
@@ -331,7 +470,13 @@ export async function revokeSession(sessionId: string, userId: string) {
 }
 
 export async function revokeAllSessions(userId: string) {
-  requireDatabase();
+  if (!databaseEnabled) {
+    if (!localTestAccountEnabled()) requireDatabase();
+    for (const [raw, session] of localAuthSessions()) {
+      if (session.userId === userId) localAuthSessions().delete(raw);
+    }
+    return;
+  }
   await query(
     "UPDATE auth_sessions SET revoked_at=now() WHERE user_id=$1 AND revoked_at IS NULL",
     [userId],
@@ -394,7 +539,17 @@ export async function resetPassword(token: string, password: string) {
 export async function accountByUserId(
   userId: string,
 ): Promise<AccountView | null> {
-  requireDatabase();
+  if (!databaseEnabled) {
+    if (!localTestAccountEnabled()) requireDatabase();
+    return userId === LOCAL_TEST_ACCOUNT.userId
+      ? {
+          userId: LOCAL_TEST_ACCOUNT.userId,
+          email: LOCAL_TEST_ACCOUNT.email,
+          displayName: LOCAL_TEST_ACCOUNT.displayName,
+          emailVerified: true,
+        }
+      : null;
+  }
   const result = await query(
     "SELECT c.user_id,c.email,c.email_verified_at,p.display_name FROM auth_credentials c JOIN user_profiles p ON p.user_id=c.user_id WHERE c.user_id=$1",
     [userId],

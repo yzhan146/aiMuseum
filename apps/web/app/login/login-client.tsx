@@ -5,9 +5,11 @@ import { FormEvent, useState } from "react";
 export default function LoginClient({
   next,
   verificationFailed,
+  testAccount,
 }: {
   next: string;
   verificationFailed: boolean;
+  testAccount?: { email: string; password: string; displayName: string };
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(
@@ -39,9 +41,17 @@ export default function LoginClient({
 
   return (
     <>
+      {testAccount && (
+        <aside className="auth-local-account" aria-label="本地测试账号">
+          <strong>本地测试账号</strong>
+          <span>邮箱：<code>{testAccount.email}</code></span>
+          <span>密码：<code>{testAccount.password}</code></span>
+          <small>仅在本地开发环境启用，表单已自动填入。</small>
+        </aside>
+      )}
       <form className="auth-form" onSubmit={submit}>
-        <label>邮箱<input name="email" type="email" autoComplete="email" autoFocus required /></label>
-        <label>密码<input name="password" type="password" autoComplete="current-password" required /></label>
+        <label>邮箱<input name="email" type="email" autoComplete="email" defaultValue={testAccount?.email} autoFocus required /></label>
+        <label>密码<input name="password" type="password" autoComplete="current-password" defaultValue={testAccount?.password} required /></label>
         <button className="auth-primary" disabled={busy}>{busy ? "正在登录…" : "登录并进入博物馆"}</button>
       </form>
       {error && <p className="auth-alert" role="alert">{error}</p>}

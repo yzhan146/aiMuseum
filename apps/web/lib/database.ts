@@ -3,7 +3,10 @@ import path from "node:path";
 import { Pool, type PoolClient, type QueryResultRow } from "pg";
 
 const connectionString = process.env.DATABASE_URL?.trim();
-export const databaseEnabled = Boolean(connectionString && !process.env.VITEST);
+export const databaseEnabled = Boolean(
+  connectionString &&
+    (!process.env.VITEST || process.env.AI_MUSEUM_PG_INTEGRATION === "1"),
+);
 
 const globalDatabase = globalThis as typeof globalThis & {
   __museumPool?: Pool;

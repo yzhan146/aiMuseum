@@ -12,5 +12,8 @@
     "test": "npm run build -w @ai-museum/sdk && npm run build -w @ai-museum/characters && npm run test --workspaces --if-present",
     "test:integration:postgres": "node scripts/run-postgres-integration.mjs"
   },
-  "engines": { "node": ">=20" }
+  "engines": { "node": ">=20" },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.62.2"
+  }
 }

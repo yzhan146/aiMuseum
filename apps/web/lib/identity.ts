@@ -78,8 +78,18 @@ export function clearSessionCookie(request: Request) {
 }
 
 export function withIdentity(response: Response, identity: Identity) {
-  if (identity.setCookie) {
-    response.headers.append("set-cookie", identity.setCookie);
-  }
-  return response;
+  if (!identity.setCookie) return response;
+
+  // Response.redirect() has an immutable Headers guard in the Fetch API.
+  // Rebuild the response with mutable headers before attaching a newly issued
+  // guest cookie. Without this, opening an email verification link in a fresh
+  // browser throws twice (the success redirect and its fallback redirect) and
+  // Next.js returns HTTP 500.
+  const headers = new Headers(response.headers);
+  headers.append("set-cookie", identity.setCookie);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }

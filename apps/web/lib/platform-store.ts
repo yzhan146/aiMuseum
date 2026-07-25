@@ -965,13 +965,23 @@ export async function addMessage(
     "id" | "threadId" | "epochId" | "characterVersion" | "createdAt"
   >,
 ) {
+  // Preserve the actual insertion order even when several messages are created
+  // within the same millisecond. Relationship episodes and cursor pagination
+  // both rely on this timestamp as their primary ordering key.
+  const now = Date.now();
+  const previous = thread.lastMessageAt
+    ? Date.parse(thread.lastMessageAt)
+    : Number.NaN;
+  const createdAt = new Date(
+    Number.isFinite(previous) ? Math.max(now, previous + 1) : now,
+  ).toISOString();
   const message: ConversationMessage = {
     ...input,
     id: randomUUID(),
     threadId: thread.id,
     epochId: thread.currentEpochId,
     characterVersion: thread.characterVersion,
-    createdAt: new Date().toISOString(),
+    createdAt,
   };
   if (!databaseEnabled) {
     platform.messages.push(message);
@@ -999,6 +1009,9 @@ export async function addMessage(
     "UPDATE character_threads SET updated_at=$1,summary=CASE WHEN $2='user' THEN left($3,100) ELSE summary END WHERE id=$4",
     [message.createdAt, message.role, message.content, thread.id],
   );
+  thread.lastMessageAt = message.createdAt;
+  thread.updatedAt = message.createdAt;
+  if (input.role === "user") thread.summary = input.content.slice(0, 100);
   return message;
 }
 

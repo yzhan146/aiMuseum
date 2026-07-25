@@ -8,6 +8,7 @@ import { spawnSync } from "node:child_process";
 const temporaryAllowlist = new Map([
   [1117015, "PostCSS CSS stringify XSS"],
   [1124252, "PostCSS sourceMappingURL file disclosure"],
+  [1124288, "PostCSS previous source-map path traversal"],
   [1124066, "sharp/libvips inherited vulnerabilities"],
 ]);
 const allowlistExpiresAt = new Date("2026-08-31T00:00:00Z");

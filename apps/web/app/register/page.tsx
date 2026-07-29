@@ -4,6 +4,8 @@ import "../account/account.css";
 import { currentAccount, safeReturnPath } from "@/lib/server-account";
 import RegisterClient from "./register-client";
 
+export const metadata = { title: "注册", robots: { index: false, follow: false } };
+
 export default async function RegisterPage({
   searchParams,
 }: {

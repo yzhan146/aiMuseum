@@ -107,6 +107,21 @@ npm run start -w @ai-museum/worker
 `RELATIONSHIP_OUTBOX_MAX_BACKOFF_MS`（默认 30000）。只运行关系 consumer
 时不需要 Redis；失败任务会按退避时间重试，超过 claim 租约的任务可被重新领取。
 
+### 公开知识页与运营指标
+
+无需登录的公开知识层包括 `/`、`/about`、`/people`、`/periods`，以及人物、时期和展厅的独立详情页。正文、metadata、canonical 与 JSON-LD 都在服务端生成；`/sitemap.xml` 和 `/robots.txt` 用于公开内容发现，账户与个人产品页面不进入索引。
+
+登录页面会每 60 秒发送一次轻量 presence heartbeat。管理员可在账户页进入 `/admin/metrics`，查看已验证注册、最近新增、实时在线和活跃账户。生产环境必须配置管理员邮箱：
+
+```dotenv
+ADMIN_EMAIL_ALLOWLIST=owner@example.com,ops@example.com
+METRICS_EXCLUDED_EMAILS=load-test@example.com
+METRICS_TIME_ZONE=Asia/Shanghai
+PUBLIC_ONLINE_PRESENCE=false
+```
+
+“当前在线”表示最近 2 分钟内活动过的独立登录账户。公开在线提示默认关闭；打开后，少于 10 人仍不显示，并且只返回向下取整后的区间值。统计复用 PostgreSQL `auth_sessions.last_seen_at`，不依赖 Redis 或 WebSocket。
+
 ## 验证
 
 ```bash

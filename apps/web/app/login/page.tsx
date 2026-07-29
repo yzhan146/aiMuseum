@@ -6,6 +6,8 @@ import { currentAccount, safeReturnPath } from "@/lib/server-account";
 import { localTestAccountCredentials } from "@/lib/auth-store";
 import LoginClient from "./login-client";
 
+export const metadata = { title: "登录", robots: { index: false, follow: false } };
+
 export default async function LoginPage({
   searchParams,
 }: {

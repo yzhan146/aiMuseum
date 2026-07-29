@@ -11,9 +11,13 @@ describe("admin metrics route", () => {
 
   it("does not expose metrics to anonymous or ordinary accounts", async () => {
     mocks.currentAccount.mockResolvedValue(null);
-    expect((await GET()).status).toBe(403);
+    const anonymous = await GET();
+    expect(anonymous.status).toBe(404);
+    expect(anonymous.headers.get("cache-control")).toBe("private, no-store");
     mocks.currentAccount.mockResolvedValue({ email: "reader@example.com" });
-    expect((await GET()).status).toBe(403);
+    const ordinary = await GET();
+    expect(ordinary.status).toBe(404);
+    expect(ordinary.headers.get("cache-control")).toBe("private, no-store");
   });
 
   it("returns a private response to an allowlisted administrator", async () => {

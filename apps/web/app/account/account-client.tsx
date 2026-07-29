@@ -9,7 +9,7 @@ type Account = {
   emailVerified: boolean;
 };
 
-export default function AccountClient({ account }: { account: Account }) {
+export default function AccountClient({ account, metricsAdmin = false }: { account: Account; metricsAdmin?: boolean }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -96,6 +96,16 @@ export default function AccountClient({ account }: { account: Account }) {
           </button>
         </div>
       </section>
+      {metricsAdmin && (
+        <section className="account-card">
+          <p className="account-eyebrow">管理员</p>
+          <h2>运营指标</h2>
+          <p>查看已验证注册账户、实时在线与近期活跃趋势，不读取用户私人内容。</p>
+          <div className="account-actions">
+            <a className="account-primary" href="/admin/metrics">打开实时指标</a>
+          </div>
+        </section>
+      )}
     </main>
   );
 }

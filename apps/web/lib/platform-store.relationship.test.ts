@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   RelationshipStage,
 } from "@ai-museum/sdk";
@@ -34,6 +34,7 @@ import {
 } from "./platform-store";
 
 beforeEach(resetPlatformForTests);
+afterEach(() => vi.useRealTimers());
 
 const characterId = "albert-einstein";
 
@@ -711,6 +712,8 @@ describe("relationship deletion and guest merge", () => {
   });
 
   it("does not resurrect guest relationship data older than the account reset cutoff", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
     const guest = await conversation("guest:reset");
     await storeRelationshipEvidence(
       evidenceInput("guest:reset", "logical:before-reset"),
@@ -757,6 +760,7 @@ describe("relationship deletion and guest merge", () => {
         idempotencyKey: "guest-old-extraction",
       },
     );
+    vi.setSystemTime(new Date("2026-01-01T00:00:01.000Z"));
     await ensureRelationshipState("account:reset", characterId);
     await resetRelationship("account:reset", characterId);
 

@@ -1,6 +1,10 @@
 import { cookies } from "next/headers";
 import type { AccountView } from "./auth-store";
-import { localTestAccountEnabled, resolveSession } from "./auth-store";
+import {
+  LOCAL_TEST_ACCOUNT,
+  localTestAccountEnabled,
+  resolveSession,
+} from "./auth-store";
 import { databaseEnabled } from "./database";
 import { SESSION_COOKIE } from "./identity";
 
@@ -9,7 +13,12 @@ export async function currentAccount(): Promise<AccountView | null> {
   if (!databaseEnabled) {
     // Explicit test-only bypass used by the headless browser suite; never configure this in a deployed service.
     if (process.env.NODE_ENV !== "production" && process.env.E2E_TEST_ACCOUNT === "true") {
-      return { userId: "e2e-visitor", email: "visitor@example.test", displayName: "测试访客", emailVerified: true };
+      return {
+        userId: LOCAL_TEST_ACCOUNT.userId,
+        email: LOCAL_TEST_ACCOUNT.email,
+        displayName: LOCAL_TEST_ACCOUNT.displayName,
+        emailVerified: true,
+      };
     }
     if (!localTestAccountEnabled()) return null;
   }

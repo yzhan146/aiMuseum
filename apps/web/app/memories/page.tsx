@@ -1,8 +1,11 @@
 import { redirect } from "next/navigation";
 import { currentAccount } from "@/lib/server-account";
 import { MemoryCenter } from "./memory-center";
+import { PresenceHeartbeat } from "@/components/PresenceHeartbeat";
+
+export const metadata = { robots: { index: false, follow: false } };
 
 export default async function Page() {
   if (!(await currentAccount())) redirect("/login?next=/memories");
-  return <MemoryCenter />;
+  return <><PresenceHeartbeat /><MemoryCenter /></>;
 }

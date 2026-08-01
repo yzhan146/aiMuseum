@@ -131,9 +131,9 @@ export const historicalPeriods: HistoricalPeriod[] = [
     theme: "renaissance",
     inquiry: "艺术、印刷和观察，怎样共同改变人们理解世界的方式？",
     halls: [
-      { id: "renaissance-florence", title: "佛罗伦萨：艺术为何需要赞助人", question: "一件杰作背后有哪些权力、金钱和学习网络？", guideTitle: "杰作不只来自天才，也来自一座城市", guideText: "艺术家、工匠、商人和统治者共同塑造了佛罗伦萨。顺着他们的关系，看一件作品怎样真正诞生。", characterIds: ["leonardo-da-vinci", "michelangelo", "lorenzo-medici", "machiavelli"] },
-      { id: "renaissance-rome", title: "罗马工作坊：大师如何竞争", question: "竞争会怎样改变艺术家的作品与地位？", guideTitle: "同一座城市里，大师既合作也竞争", guideText: "从委托、工作坊和名声出发，理解米开朗琪罗、拉斐尔等人如何在比较与挑战中形成自己的风格。", characterIds: ["michelangelo", "raphael", "sofonisba-anguissola"] },
-      { id: "renaissance-observation", title: "从日心说到望远镜", question: "新证据如何挑战人们熟悉的宇宙？", guideTitle: "当观察、印刷与计算带来新的证据", guideText: "旧观点不会因为一句反对就消失。这个展厅展示新工具、新数据和公开讨论怎样逐步改变人们理解世界的方式。", characterIds: ["copernicus", "galileo", "johannes-kepler", "andreas-vesalius", "johannes-gutenberg"] }
+      { id: "renaissance-florence", title: "佛罗伦萨：杰作为何成群出现", question: "佛罗伦萨怎样把城市委托、工坊训练、赞助网络和公共竞争，变成持续产生杰作的条件？", guideTitle: "杰作不只来自天才，也来自一座不断提出难题的城市", guideText: "从一扇公共铜门走到《大卫》，六件作品会把资金、工坊、声望、实验和城市选择重新连在一起。这里有一条约十分钟的推荐路线，但你可以随时自由参观。", characterIds: ["leonardo-da-vinci", "michelangelo", "lorenzo-medici", "machiavelli"] },
+      { id: "renaissance-rome", title: "罗马工作坊：一位大师，其实有多少双手？", question: "罗马怎样把大师之间的竞争，变成纸上试验、团队协作和传遍欧洲的风格？", guideTitle: "签名属于大师，杰作却往往来自一间会协作、会竞争、也会复制的工作坊", guideText: "先看艺术家怎样在纸上试错，再看草图怎样被放大、交给团队并通过版画远行。这里有一条约十分钟的推荐路线，但你可以随时自由参观。", characterIds: ["raphael", "michelangelo", "sofonisba-anguissola"] },
+      { id: "renaissance-observation", title: "望远镜与星图：新宇宙如何成为证据？", question: "一张新宇宙图、更精确的数字和一根望远镜，怎样从‘新想法’变成能被别人检查的证据？", guideTitle: "科学改变世界，不只需要大胆猜想，还需要测量、计算、记录和公开争论", guideText: "从哥白尼的宇宙图出发，经过第谷的仪器、开普勒的计算和伽利略的望远镜，看看一项主张怎样变成别人能够复查的证据。", characterIds: ["copernicus", "galileo", "johannes-kepler", "johannes-gutenberg"] }
     ],
     characters: [
       person("leonardo-da-vinci", "renaissance-science", "达·芬奇", "达", "1452–1519", "1452-04-15", "1519-05-02", "gold", "典藏人物", "艺术、工程与观察", ["michelangelo", "isabella-deste", "lorenzo-medici"]),

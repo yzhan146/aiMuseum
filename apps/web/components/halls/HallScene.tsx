@@ -2,6 +2,7 @@
 
 import type { ExhibitPack, HallVisitState } from "@ai-museum/sdk";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { GuidedGallery } from "./GuidedGallery";
 
 export type HallSceneCharacter = {
   id: string;
@@ -22,7 +23,12 @@ type Props = {
   onNextHall?: (id: string) => void;
 };
 
-export function HallScene({ pack, progress, mode, characters, onSelectCharacter, onReturn, onOpenMap, onNextHall }: Props) {
+export function HallScene(props: Props) {
+  if (props.pack.hall.experience?.kind === "guided_gallery") return <GuidedGallery {...props} />;
+  return <ClassicHallScene {...props} />;
+}
+
+function ClassicHallScene({ pack, progress, mode, characters, onSelectCharacter, onReturn, onOpenMap, onNextHall }: Props) {
   const { hall, assets, objects, sources } = pack;
   const initial = hall.stations.some((item) => item.id === progress?.lastStationId) ? progress!.lastStationId : hall.stations[0].id;
   const [stationId, setStationId] = useState(initial);

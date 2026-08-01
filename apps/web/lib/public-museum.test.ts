@@ -18,4 +18,11 @@ describe("public museum projection", () => {
       expect(hall.characters.every((character) => Boolean(publicCharacter(character.id)))).toBe(true);
     }
   });
+
+  it("publishes the complete Florence flagship object set for indexing", () => {
+    const result = publicHall("renaissance-florence");
+    expect(result?.pack.objects).toHaveLength(6);
+    expect(result?.pack.objects.every((object) => Boolean(object.assetId) && object.sourceIds.length >= 2)).toBe(true);
+    expect(result?.pack.hall.experience).toMatchObject({ kind: "guided_gallery", recommendedMinutes: 10, quickMinutes: 3 });
+  });
 });

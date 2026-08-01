@@ -43,4 +43,30 @@ describe("character system prompt", () => {
     expect(prompt).toContain("青莲客");
     expect(prompt).toContain("不得提及内部数值、门槛、权重或晋级攻略");
   });
+
+  it("injects a curated hall guide manual without creating relationship memory", () => {
+    const prompt = buildCharacterSystemPrompt(liBai, request, [], [], {
+      recalledMemories: [],
+      museumGuide: {
+        hallTitle: "测试展厅",
+        hallQuestion: "作品如何诞生？",
+        stationTitle: "工坊",
+        stationBody: "观察共同生产。",
+        currentObject: {
+          name: "测试作品",
+          dateLabel: "1500",
+          description: "已审核的展品说明。",
+          significance: "它说明协作的重要性。",
+          factStatus: "interpretation",
+        },
+        nearbyObjects: [],
+        routeReminderUsed: false,
+        history: [],
+      },
+    });
+    expect(prompt).toContain("当前数字展厅导览手册");
+    expect(prompt).toContain("测试作品");
+    expect(prompt).toContain("本轮导览不写入长期记忆");
+    expect(prompt).toContain("不得修改作者、年代、地点");
+  });
 });

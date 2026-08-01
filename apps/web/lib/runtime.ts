@@ -2,9 +2,30 @@ import type { ChatRequest, ChatResult, CharacterPack, Citation, Claim, MasteryRe
 import { classifyQuestion, retrieveKnowledge } from "./knowledge";
 
 export interface GeneratedDraft { answer: string; claimIds: string[]; usedMemoryIds?: string[]; mode?: "rules" | "local-model" | "cloud-model" }
-export interface DialogueGenerationContext { relationship?: RelationshipRuntimeContext; recalledMemories: MemoryRecord[] }
+export interface MuseumGuideContext {
+  hallTitle: string;
+  hallQuestion: string;
+  stationTitle: string;
+  stationBody: string;
+  stationQuestion?: string;
+  currentObject: {
+    name: string;
+    creatorLabel?: string;
+    dateLabel: string;
+    placeLabel?: string;
+    description: string;
+    significance: string;
+    factStatus?: "established" | "interpretation" | "disputed";
+    observationPrompt?: string;
+  };
+  nearbyObjects: Array<{ name: string; shortLabel: string }>;
+  nextStationTitle?: string;
+  routeReminderUsed: boolean;
+  history: Array<{ role: "visitor" | "guide"; content: string }>;
+}
+export interface DialogueGenerationContext { relationship?: RelationshipRuntimeContext; recalledMemories: MemoryRecord[]; museumGuide?: MuseumGuideContext }
 export interface DialogueGenerator { readonly mode: "rules" | "local-model" | "cloud-model"; generate(pack: CharacterPack, request: ChatRequest, claims: Claim[], context?: DialogueGenerationContext): Promise<GeneratedDraft> }
-export interface DialogueRuntimeContext { memories?: MemoryRecord[]; mastery?: MasteryRecord[]; relationship?: RelationshipRuntimeContext }
+export interface DialogueRuntimeContext { memories?: MemoryRecord[]; mastery?: MasteryRecord[]; relationship?: RelationshipRuntimeContext; museumGuide?: MuseumGuideContext }
 export class EvidenceFirstGenerator implements DialogueGenerator {
   readonly mode = "rules" as const;
   async generate(pack: CharacterPack, request: ChatRequest, claims: Claim[]): Promise<GeneratedDraft> {
@@ -49,7 +70,7 @@ export async function runDialogue(pack: CharacterPack, request: ChatRequest, gen
   if (selection.boundary) return boundaryResult(pack, selection.classification, selection.reason, generator.mode);
   if (!selection.claims.length && generator.mode === "rules") return boundaryResult(pack, "规则模式", "当前没有命中馆藏资料，且尚未配置可用模型", generator.mode);
   const memory = (context.memories ?? []).filter(item => item.confidence >= .6).map(item => ({ item, score: memoryScore(item, request.message) })).filter(item => item.score >= 2).sort((a, b) => b.score - a.score || b.item.importance - a.item.importance)[0]?.item;
-  const draft = await generator.generate(pack, request, selection.claims, { relationship: context.relationship, recalledMemories: memory ? [memory] : [] });
+  const draft = await generator.generate(pack, request, selection.claims, { relationship: context.relationship, recalledMemories: memory ? [memory] : [], museumGuide: context.museumGuide });
   const availableMemories = new Map((memory ? [memory] : []).map(item => [item.id, item]));
   const usedMemories = (draft.usedMemoryIds ?? []).map(id => availableMemories.get(id)).filter((item): item is MemoryRecord => Boolean(item));
   if ((draft.usedMemoryIds?.length ?? 0) !== usedMemories.length) return boundaryResult(pack, "记忆来源核验失败", "生成内容声明使用了本轮未提供的记忆", draft.mode ?? generator.mode);

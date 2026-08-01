@@ -1,4 +1,5 @@
 import { exhibitPackSchema, type ExhibitPack } from "@ai-museum/sdk";
+import { buildRenaissanceObservation, buildRenaissanceRome } from "./renaissance-halls-v2.js";
 
 type HallSeed = {
   id: string;
@@ -79,7 +80,93 @@ function build(seed: HallSeed, index: number): ExhibitPack {
   });
 }
 
-export const publishedExhibitPacks = seeds.map(build);
+function buildRenaissanceFlorence(index: number): ExhibitPack {
+  const base = "/exhibits/renaissance-florence/2.0.0";
+  const officialSources = {
+    doors: "renaissance-doors-official",
+    baptism: "renaissance-baptism-official",
+    leonardo: "renaissance-leonardo-adoration-official",
+    botticelli: "renaissance-botticelli-adoration-official",
+    venus: "renaissance-venus-official",
+    david: "renaissance-david-official",
+  };
+  const imageSources = {
+    doors: "renaissance-doors-image",
+    baptism: "renaissance-baptism-image",
+    leonardo: "renaissance-leonardo-adoration-image",
+    botticelli: "renaissance-botticelli-adoration-image",
+    venus: "renaissance-venus-image",
+    david: "renaissance-david-image",
+  };
+  return exhibitPackSchema.parse({
+    manifest: { schemaVersion: "1.0", id: "exhibit-renaissance-florence", version: "2.0.0", status: "published", author: { id: "ai-museum", name: "AI Museum Contributors" }, licenseCode: "MIXED-OPEN", publishedAt: "2026-07-31T00:00:00.000Z" },
+    hall: {
+      id: "renaissance-florence",
+      periodId: "renaissance-science",
+      sceneVersion: "2.0.0",
+      locale: "zh-CN",
+      title: "佛罗伦萨：杰作为何成群出现",
+      question: "佛罗伦萨怎样把城市委托、工坊训练、赞助网络和公共竞争，变成持续产生杰作的条件？",
+      guideTitle: "杰作不只来自天才，也来自一座不断提出难题的城市",
+      guideText: "从一扇公共铜门走到《大卫》，六件作品会把资金、工坊、声望、实验和城市选择重新连在一起。这里有一条约十分钟的推荐路线，但你可以随时跳过、回看或独自参观。",
+      theme: { themeKey: "renaissance-florence-v2", tokens: { bgDeep: "#4d1d2a", bgSoft: "#eadfce", surface: "#fff9ef", ink: "#27201e", accent: "#a94736", highlight: "#c79a49" }, lightAssetId: "renaissance-entrance-v2", archiveAssetId: "renaissance-entrance-v2" },
+      entrance: { kicker: "1401—1504 · 佛罗伦萨", primaryActionLabel: "从第一幕开始", anchorObjectId: "renaissance-doors" },
+      stations: [
+        { id: "city", order: 1, type: "gallery", title: "城市先提出难题", body: "公共委托把资金、材料、工坊和观众聚集到同一个问题周围。", question: "在艺术家出现以前，一座城市需要先准备什么？", transition: "城市给出难题，工坊负责把难题变成可以触摸的作品。", objectIds: ["renaissance-doors"], characterIds: ["leonardo-da-vinci", "michelangelo"] },
+        { id: "workshop", order: 2, type: "gallery", title: "天才从工坊长出来", body: "训练、协作、试验和失败都留在作品表面；一个名字背后往往有许多双手。", question: "如果一件作品由多人完成，谁才是作者？", transition: "有了训练和技巧，艺术家仍需要具体委托、时间与被看见的机会。", objectIds: ["renaissance-baptism", "renaissance-leonardo-adoration"], characterIds: ["leonardo-da-vinci", "michelangelo"] },
+        { id: "patrons", order: 3, type: "gallery", title: "谁付钱，谁想被看见", body: "委托既购买图像，也购买信仰表达、社会声望和新的文化想象。", question: "出钱的人能决定作品表达什么吗？", transition: "作品完成并不意味着意义固定；一座城市还会继续选择它代表什么。", objectIds: ["renaissance-botticelli-adoration", "renaissance-venus"], characterIds: ["leonardo-da-vinci", "michelangelo", "lorenzo-medici"] },
+        { id: "symbol", order: 4, type: "gallery", title: "杰作成为城市的脸", body: "作品离开工坊后，位置、观众和政治选择会继续改变它的意义。", question: "一件作品什么时候不再只属于艺术家？", transition: "你已经看见一套创造力生态：难题、材料、训练、资金、竞争与观众彼此咬合。", objectIds: ["renaissance-david"], characterIds: ["michelangelo", "leonardo-da-vinci", "machiavelli"] },
+      ],
+      characterRefs: [
+        { id: "leonardo-da-vinci", relationshipLabel: "观察、工坊与未完成的实验" },
+        { id: "michelangelo", relationshipLabel: "材料、劳动与公共雕塑" },
+        { id: "lorenzo-medici", relationshipLabel: "赞助网络与城市权力" },
+        { id: "machiavelli", relationshipLabel: "共和国政治与公共象征" },
+      ],
+      exit: { reflectionQuestion: "如果天才出生在一座不给材料、难题和观众的城市，他还会留下同样的杰作吗？", nextHallId: seeds[index + 1]?.id },
+      experience: { kind: "guided_gallery", quickMinutes: 3, recommendedMinutes: 10, guideCharacterIds: ["leonardo-da-vinci", "michelangelo"], midpointStationId: "patrons" },
+    },
+    objects: [
+      { id: "renaissance-doors", name: "佛罗伦萨洗礼堂北门", creatorLabel: "洛伦佐·吉贝尔蒂及其工坊", kind: "artifact", dateLabel: "1403—1424", placeLabel: "佛罗伦萨洗礼堂 / 现藏主教座堂博物馆", shortLabel: "一场城市竞赛，变成持续约二十年的公共工程。", description: "1401 年的竞赛决定第二组洗礼堂铜门的作者，吉贝尔蒂胜出后与工坊长期完成这组青铜浮雕。达·芬奇和米开朗琪罗当时都尚未出生。", significance: "它让我们先看见生产杰作的城市条件：行业组织、公开委托、长期资金、材料与工坊劳动。", visualDescription: "北门由二十八块四叶形框内的浮雕组成；真实作品照片中可见完整门体与建筑位置。", representation: "artifact_photo", sourceIds: [officialSources.doors, imageSources.doors], relatedCharacterIds: ["leonardo-da-vinci", "michelangelo"], status: "published", assetId: "renaissance-doors-image", factStatus: "established", observationPrompt: "先不要数人物：看看重复的边框、巨大尺度和二十八块浮雕意味着多少次铸造与协作。", licenseNote: "摄影 Yair Haklai，CC BY-SA 4.0；作品信息以 Opera del Duomo 为准。" },
+      { id: "renaissance-baptism", name: "《基督受洗》", creatorLabel: "安德烈亚·德尔·韦罗基奥、达·芬奇及其他合作者", kind: "artwork", dateLabel: "约 1470—1475", placeLabel: "乌菲齐美术馆", shortLabel: "同一画面里，可以看见工坊如何共同生产。", description: "十五世纪工坊常由负责人设计，再由学生与合作者完成不同部分。当前研究认为达·芬奇的参与可能不限于左侧天使。", significance: "作品打破“一位天才独自完成一切”的想象，也提醒我们把瓦萨里的传奇故事与当前研究判断分开。", visualDescription: "画面中央是受洗的基督，左下两位天使在姿态、光线与衣褶处理上形成可比较的观察入口。", representation: "historical_image", sourceIds: [officialSources.baptism, imageSources.baptism], relatedCharacterIds: ["leonardo-da-vinci", "michelangelo"], status: "published", assetId: "renaissance-baptism-image", factStatus: "interpretation", observationPrompt: "比较左下两位天使：转身、衣褶、头发与背景光线有什么不同？", licenseNote: "忠实二维作品复制，Public Domain；馆藏解释以 Uffizi 为准。" },
+      { id: "renaissance-leonardo-adoration", name: "《三博士来朝》", creatorLabel: "达·芬奇", kind: "artwork", dateLabel: "约 1481—1482", placeLabel: "乌菲齐美术馆", shortLabel: "一份有期限的委托，最后留下未完成的制作现场。", description: "1481 年文件记录奥斯定会修士委托达·芬奇为圣多纳托修道院高祭坛作画，并约定完成期限；作品最终未完成。", significance: "委托不保证完成。未完成的表面让构图、修改、材料与艺术家的职业流动直接暴露出来。", visualDescription: "中心人物已有较完整明暗，周围人物、建筑、马匹和远景仍保留大量线稿与修改痕迹。", representation: "historical_image", sourceIds: [officialSources.leonardo, imageSources.leonardo], relatedCharacterIds: ["leonardo-da-vinci", "michelangelo"], status: "published", assetId: "renaissance-leonardo-adoration-image", factStatus: "established", observationPrompt: "从最完整的中心向外看：你能找到哪三种不同完成程度？", licenseNote: "图像 CC BY-SA 4.0；馆藏与委托信息以 Uffizi 为准。" },
+      { id: "renaissance-botticelli-adoration", name: "《三博士来朝》", creatorLabel: "桑德罗·波提切利", kind: "artwork", dateLabel: "约 1470—1475", placeLabel: "乌菲齐美术馆", shortLabel: "宗教画也可以成为委托人的社会名片。", description: "商人加斯帕雷·德尔·拉马为礼拜堂委托祭坛画；画面把宗教题材、佛罗伦萨社会、美第奇家族形象和委托人自我呈现结合在一起。", significance: "私人委托同时可以是信仰表达、关系展示和声望工程；成功作品也帮助艺术家获得新的注意。", visualDescription: "圣母子位于上方中心，衣着鲜明的佛罗伦萨人物环绕下方；画面右侧有人直视观众。", representation: "historical_image", sourceIds: [officialSources.botticelli, imageSources.botticelli], relatedCharacterIds: ["leonardo-da-vinci", "lorenzo-medici"], status: "published", assetId: "renaissance-botticelli-adoration-image", factStatus: "established", observationPrompt: "谁在看圣母子，谁在看身边的人，又有谁直接看向画外的你？", licenseNote: "摄影 Ghislainn，CC BY-SA 4.0；作品信息以 Uffizi 为准。" },
+      { id: "renaissance-venus", name: "《维纳斯的诞生》", creatorLabel: "桑德罗·波提切利", kind: "artwork", dateLabel: "约 1485", placeLabel: "乌菲齐美术馆", shortLabel: "新的私人空间与古典兴趣，让题材边界发生变化。", description: "作品采用古典神话题材与古代雕像姿态。它很可能与美第奇家族支系有关，但 1550 年以前没有书面记录，具体委托背景不能写成定论。", significance: "它展示了私人住宅、古典文本、收藏与艺术技巧如何相遇，也示范博物馆怎样诚实保留“不确定”。", visualDescription: "维纳斯立在贝壳上抵达岸边，风神从左侧吹来，右侧人物举起饰有花朵的披风。", representation: "historical_image", sourceIds: [officialSources.venus, imageSources.venus], relatedCharacterIds: ["leonardo-da-vinci", "lorenzo-medici"], status: "published", assetId: "renaissance-venus-image", factStatus: "disputed", observationPrompt: "先看人物的轮廓和风向：画面追求的是自然重量，还是一种被设计过的节奏？", licenseNote: "Public Domain Mark；具体委托背景保留 Uffizi 所述不确定性。" },
+      { id: "renaissance-david", name: "《大卫》", creatorLabel: "米开朗琪罗", kind: "artwork", dateLabel: "1501—1504", placeLabel: "佛罗伦萨美术学院美术馆", shortLabel: "材料、委托与城市选择，让雕像成为公共象征。", description: "大教堂工程委员会在 1501 年委托米开朗琪罗处理一块曾被其他艺术家加工并放弃的大理石；1504 年委员会又把原拟高置于大教堂外的雕像改放到旧宫入口。", significance: "材料限制、长期公共工程、艺术家劳动和城市政治解释共同改变一件作品的意义。", visualDescription: "大卫以站立的裸体青年形象出现，身体重心与警觉的视线形成张力；照片从较低位置呈现雕像尺度。", representation: "artifact_photo", sourceIds: [officialSources.david, imageSources.david], relatedCharacterIds: ["michelangelo", "leonardo-da-vinci", "machiavelli"], status: "published", assetId: "renaissance-david-image", factStatus: "established", observationPrompt: "如果它原本要被放到很高的位置，为什么手、头与身体的比例会这样处理？", licenseNote: "摄影 Dimitris Kamaras，CC BY 2.0；委托与位置变更以 Accademia 为准。" },
+    ],
+    assets: [
+      { id: "renaissance-entrance-v2", path: `${base}/entrance-v2.webp`, contentType: "image/webp", width: 1400, height: 788, representation: "decorative_illustration", sourceIds: ["renaissance-environment-note"], alt: "艺术化虚构的佛罗伦萨数字展馆，拱廊外可见城市穹顶，馆内有空展框、铜浮雕与绘画工具", licenseCode: "Apache-2.0" },
+      { id: "renaissance-doors-image", path: `${base}/ghiberti-north-doors.webp`, contentType: "image/webp", width: 787, height: 1400, representation: "artifact_photo", sourceIds: [imageSources.doors], alt: "吉贝尔蒂及工坊制作的佛罗伦萨洗礼堂北门全景", licenseCode: "CC-BY-SA-4.0" },
+      { id: "renaissance-baptism-image", path: `${base}/baptism-of-christ.webp`, contentType: "image/webp", width: 1164, height: 1400, representation: "historical_image", sourceIds: [imageSources.baptism], alt: "韦罗基奥、达·芬奇及合作者的《基督受洗》全幅", licenseCode: "Public-Domain" },
+      { id: "renaissance-leonardo-adoration-image", path: `${base}/leonardo-adoration.webp`, contentType: "image/webp", width: 1400, height: 1396, representation: "historical_image", sourceIds: [imageSources.leonardo], alt: "达·芬奇未完成的《三博士来朝》，可见线稿、明暗和不同完成程度", licenseCode: "CC-BY-SA-4.0" },
+      { id: "renaissance-botticelli-adoration-image", path: `${base}/botticelli-adoration.webp`, contentType: "image/webp", width: 1400, height: 1160, representation: "historical_image", sourceIds: [imageSources.botticelli], alt: "波提切利《三博士来朝》全幅，众多佛罗伦萨人物围绕圣母子", licenseCode: "CC-BY-SA-4.0" },
+      { id: "renaissance-venus-image", path: `${base}/birth-of-venus.webp`, contentType: "image/webp", width: 1200, height: 749, representation: "historical_image", sourceIds: [imageSources.venus], alt: "波提切利《维纳斯的诞生》全幅", licenseCode: "Public-Domain-Mark" },
+      { id: "renaissance-david-image", path: `${base}/michelangelo-david.webp`, contentType: "image/webp", width: 1050, height: 1400, representation: "artifact_photo", sourceIds: [imageSources.david], alt: "从低处拍摄的米开朗琪罗《大卫》雕像全身", licenseCode: "CC-BY-2.0" },
+    ],
+    sources: [
+      { id: "renaissance-environment-note", title: "AI Museum 佛罗伦萨入口环境", note: "由 AI Museum 使用生成式图像制作的艺术化虚构展馆，不是佛罗伦萨真实建筑或历史展厅复原。" },
+      { id: officialSources.doors, title: "Opera del Duomo — North Gate of the Baptistery", note: "作者、制作年代、竞赛与原始位置。", url: "https://duomo.firenze.it/en/discover/opera-duomo-museum/the-halls/sala-del-paradiso/8623/lorenzo-ghiberti-porta-nord-del-battistero" },
+      { id: imageSources.doors, title: "Wikimedia Commons — North doors of the Baptistry", note: "摄影 Yair Haklai；CC BY-SA 4.0。", url: "https://commons.wikimedia.org/wiki/File:North_doors_of_the_Baptistry_(Florence).jpg" },
+      { id: officialSources.baptism, title: "Uffizi — The Baptism of Christ", note: "馆藏信息、工坊分工与达·芬奇参与范围。", url: "https://www.uffizi.it/en/artworks/verrocchio-leonardo-baptism-of-christ" },
+      { id: imageSources.baptism, title: "Wikimedia Commons — Baptism of Christ", note: "忠实二维公版作品复制；Public Domain。", url: "https://commons.wikimedia.org/wiki/File:Verrocchio_and_Leonardo,_Baptism_of_Christ,_c1470-75,_Uffizi.jpg" },
+      { id: officialSources.leonardo, title: "Uffizi — Leonardo, Adoration of the Magi", note: "1481 年委托文件、材质、年代与未完成状态。", url: "https://www.uffizi.it/en/artworks/leonardo-adoration-of-the-magi" },
+      { id: imageSources.leonardo, title: "Wikimedia Commons — Leonardo, Adoration", note: "CC BY-SA 4.0。", url: "https://commons.wikimedia.org/wiki/File:Leonardo_da_Vinci,_Adoration,_c1481,_Uffizi.jpg" },
+      { id: officialSources.botticelli, title: "Uffizi — Botticelli, Adoration of the Magi", note: "委托人、礼拜堂原始用途与佛罗伦萨社会人物解释。", url: "https://www.uffizi.it/en/artworks/boticelli-adoration-lami" },
+      { id: imageSources.botticelli, title: "Wikimedia Commons — Botticelli, Adoration of the Magi", note: "摄影 Ghislainn；CC BY-SA 4.0。", url: "https://commons.wikimedia.org/wiki/File:Botticelli,_Adorazione_dei_Magi,_1475_circa,_Galleria_dei_Uffizi,_Firenze.JPG" },
+      { id: officialSources.venus, title: "Uffizi — The Birth of Venus", note: "馆藏信息、古典来源与委托背景的不确定性。", url: "https://www.uffizi.it/en/artworks/birth-of-venus" },
+      { id: imageSources.venus, title: "Wikimedia Commons — La Venere di Botticelli", note: "Public Domain Mark。", url: "https://commons.wikimedia.org/wiki/File:La_Venere_di_Botticelli.jpg" },
+      { id: officialSources.david, title: "Galleria dell’Accademia — David", note: "委托、材料、尺寸与 1504 年位置决定。", url: "https://www.galleriaaccademiafirenze.it/opere/david/" },
+      { id: imageSources.david, title: "Wikimedia Commons — Michelangelo's David", note: "摄影 Dimitris Kamaras；CC BY 2.0。", url: "https://commons.wikimedia.org/wiki/File:Michelangelo%27s_David,_Galleria_dell%27Accademia,_Florence_(26651321296).jpg" },
+    ],
+  });
+}
+
+export const publishedExhibitPacks = seeds.map((seed, index) => {
+  if (seed.id === "renaissance-florence") return buildRenaissanceFlorence(index);
+  if (seed.id === "renaissance-rome") return buildRenaissanceRome();
+  if (seed.id === "renaissance-observation") return buildRenaissanceObservation();
+  return build(seed, index);
+});
 
 export function publishedExhibitPackByHallId(hallId: string) {
   return publishedExhibitPacks.find((pack) => pack.hall.id === hallId);

@@ -8,6 +8,7 @@ import type {
   RelationshipPublicState,
 } from "@ai-museum/sdk";
 import { buildConversationClues } from "@/lib/conversation-clues";
+import { resolveMuseumHallDeepLink } from "@/lib/museum-deep-link";
 import { HallScene } from "@/components/halls/HallScene";
 import { RelationshipAddressDialog } from "@/components/relationships/RelationshipAddressDialog";
 import { RelationshipChip } from "@/components/relationships/RelationshipChip";
@@ -116,6 +117,7 @@ type Message = {
 type Route =
   | "mode"
   | "home"
+  | "conversation"
   | "explore"
   | "period"
   | "hall"
@@ -131,7 +133,8 @@ type RelationshipAction =
 
 const routeNames: Record<Route, string> = {
   mode: "视觉模式",
-  home: "主页",
+  home: "选择参观方式",
+  conversation: "人物交流",
   explore: "探索历史",
   period: "历史时期",
   hall: "历史展厅",
@@ -275,12 +278,19 @@ export function Museum({ displayName }: { displayName: string }) {
           if (["small", "medium", "large"].includes(state.chatFontSize))
             setChatFontSize(state.chatFontSize);
         }
-        const queryMode = new URLSearchParams(location.search).get("mode");
+        const query = new URLSearchParams(location.search);
+        const queryMode = query.get("mode");
         if (queryMode === "child" || queryMode === "adult") setMode(queryMode);
         const hash = location.hash.slice(1);
         if (validRoutes.has(hash)) setRoute(hash as Route);
-        else if (!saved) setRoute("mode");
-        await refreshExplore();
+        const nextExplore = await refreshExplore();
+        const requestedHall = resolveMuseumHallDeepLink(nextExplore.periods, query.get("hall"));
+        if (requestedHall) {
+          setPeriodId(requestedHall.periodId);
+          setHallId(requestedHall.hallId);
+          setRoute("hall");
+          history.replaceState(null, "", `${location.pathname}${location.search}#hall`);
+        }
         await refreshThreads();
       } catch (reason) {
         setError(reason instanceof Error ? reason.message : "页面加载失败");
@@ -838,8 +848,10 @@ export function Museum({ displayName }: { displayName: string }) {
   }
 
   function header() {
+    const museumRoute = ["explore", "period", "hall", "map", "encounter"].includes(route);
+    const conversationRoute = ["conversation", "person", "museum", "pack", "chat"].includes(route);
     return (
-      <header className="visitor-header">
+      <header className={`visitor-header ${route === "home" ? "entry-header" : ""}`}>
         <button
           className="visitor-brand"
           onClick={() => go("home")}
@@ -847,52 +859,33 @@ export function Museum({ displayName }: { displayName: string }) {
         >
           AI Museum
         </button>
-        <nav aria-label="主要导航">
+        {route !== "home" && <nav aria-label="主要导航">
           <button
-            className={route === "home" ? "active" : ""}
-            onClick={() => go("home")}
-          >
-            主页
-          </button>
-          <button
-            className={
-              [
-                "explore",
-                "period",
-                "hall",
-                "map",
-                "encounter",
-                "person",
-              ].includes(route)
-                ? "active"
-                : ""
-            }
+            className={museumRoute ? "active" : ""}
             onClick={() => go("explore")}
           >
-            探索历史
+            参观博物馆
           </button>
           <button
-            className={
-              ["museum", "pack", "chat"].includes(route) ? "active" : ""
-            }
-            onClick={() => go("museum")}
+            className={conversationRoute ? "active" : ""}
+            onClick={() => go("conversation")}
           >
-            我的博物馆
+            人物交流
           </button>
-        </nav>
-        <button
+        </nav>}
+        {route !== "home" && conversationRoute && <button
           className="visitor-search-trigger"
           onClick={() => setSearchOpen(true)}
           aria-label="搜索人物或关系"
         >
           ⌕ <span>搜索人物或关系</span>
-        </button>
-        <button
+        </button>}
+        {route !== "home" && conversationRoute && <button
           className="star-pill"
           onClick={() => toast("探索星只来自真实学习事件")}
         >
           ✦ {data.collection.stars}
-        </button>
+        </button>}
         <a
           className="account-nav"
           href="/account"
@@ -1031,17 +1024,79 @@ export function Museum({ displayName }: { displayName: string }) {
     const recentCharacter = recent
       ? characters.find((item) => item.id === recent.characterId)
       : undefined;
+    const recentPortrait = recentCharacter?.portraitVariants[
+      portraitStyle(recentCharacter)
+    ]?.assetPath;
+    return (
+      <section className="museum-entry" aria-labelledby="museum-entry-title">
+        <header>
+          <small>欢迎回来，{displayName}</small>
+          <h1 id="museum-entry-title">今天，你想怎样走进历史？</h1>
+          <p>先选择一种体验。之后可以随时返回这里重新选择。</p>
+        </header>
+        <div className="museum-entry-choices">
+          <button
+            className="museum-entry-choice visit"
+            type="button"
+            onClick={() => go("explore")}
+          >
+            <img
+              src="/exhibits/renaissance-florence/1.0.0/scene.webp"
+              alt="文艺复兴展馆场景"
+            />
+            <span className="museum-entry-shade" aria-hidden="true" />
+            <span className="museum-entry-copy">
+              <small>从环境与展品开始</small>
+              <b>参观博物馆</b>
+              <em>选择时期与展厅，沿推荐动线参观，也可以完全自由浏览。</em>
+              <strong>选择展厅 →</strong>
+            </span>
+          </button>
+          <button
+            className="museum-entry-choice talk"
+            type="button"
+            onClick={() => go("conversation")}
+          >
+            {recentPortrait ? (
+              <img src={recentPortrait} alt="" />
+            ) : (
+              <span className="museum-entry-person" aria-hidden="true">人</span>
+            )}
+            <span className="museum-entry-shade" aria-hidden="true" />
+            <span className="museum-entry-copy">
+              <small>{recentCharacter ? "继续上次相遇" : "选择一位历史人物"}</small>
+              <b>与历史人物深入交流</b>
+              <em>
+                {recentCharacter
+                  ? `继续和${recentCharacter.name}的长期对话。`
+                  : "查看人物资料，开始或继续一段长期对话。"}
+              </em>
+              <strong>
+                {recentCharacter ? `继续和${recentCharacter.name}交流` : "进入人物区"} →
+              </strong>
+            </span>
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  function conversationHome() {
+    const recent = threads[0];
+    const recentCharacter = recent
+      ? characters.find((item) => item.id === recent.characterId)
+      : undefined;
     return (
       <>
         <section className="visitor-hero">
-          <p>好用 · 好玩 · 有教育意义</p>
+          <p>人物交流</p>
           <h1>
-            {recentCharacter ? "继续你的历史旅程" : "今天想进入哪一段历史？"}
+            {recentCharacter ? "继续一段未完的对话" : "你想先认识哪位历史人物？"}
           </h1>
           <span>
             {recentCharacter
               ? "你与每位人物的旧对话都会独立保存。"
-              : "先走进历史场景，再与人物建立长期关系。"}
+              : "可以先查看人物资料，再决定是否开始长期交流。"}
           </span>
         </section>
         {recentCharacter ? (
@@ -1071,19 +1126,19 @@ export function Museum({ displayName }: { displayName: string }) {
           <article className="first-step">
             <div>
               <small>第一次探索</small>
-              <h2>选择一个历史时期，从推荐展厅开始</h2>
+              <h2>从人物名册中选择一位想认识的人</h2>
               <p>
                 完成一次有史料依据的人物相遇后，将获得20探索星和一次免费开包。
               </p>
             </div>
-            <button className="primary" onClick={() => go("explore")}>
-              选择历史时期
+            <button className="primary" onClick={() => go("museum")}>
+              打开人物名册
             </button>
           </article>
         )}
         <div className="center-actions">
           <button className="secondary" onClick={() => go("museum")}>
-            打开我的博物馆 · {data.collection.ownedCharacterIds.length}/
+            查看我的人物收藏 · {data.collection.ownedCharacterIds.length}/
             {initialOwnedCount}
           </button>
         </div>
@@ -1103,9 +1158,6 @@ export function Museum({ displayName }: { displayName: string }) {
     );
   }
   function periodView() {
-    const visible = expanded
-      ? period.characters
-      : period.characters.slice(0, 3);
     return (
       <>
         <section
@@ -1117,14 +1169,6 @@ export function Museum({ displayName }: { displayName: string }) {
           </small>
           <h1>{period.title}</h1>
           <p>{period.inquiry}</p>
-          <div className="actions">
-            <button className="primary" onClick={() => go("hall")}>
-              进入推荐展厅
-            </button>
-            <button className="secondary" onClick={() => go("pack")}>
-              查看本时期卡包
-            </button>
-          </div>
         </section>
         <section className="section-title">
           <div>
@@ -1155,21 +1199,6 @@ export function Museum({ displayName }: { displayName: string }) {
               </div>
             </article>
           ))}
-        </div>
-        <section className="section-title">
-          <div>
-            <small>{expanded ? "本时期完整名册" : "推荐起始人物"}</small>
-            <h2>{expanded ? "12位人物" : "先认识这3位"}</h2>
-          </div>
-          <button
-            className="secondary"
-            onClick={() => setExpanded((value) => !value)}
-          >
-            {expanded ? "收起名册" : "查看全部12人"}
-          </button>
-        </section>
-        <div className="people-grid">
-          {visible.map((character) => personCard(character))}
         </div>
       </>
     );
@@ -1826,28 +1855,32 @@ export function Museum({ displayName }: { displayName: string }) {
   }
 
   function bottomNav() {
-    if (["hall", "map", "encounter"].includes(route)) return null;
+    if (["home", "hall", "map", "encounter"].includes(route)) return null;
     return (
       <nav className="visitor-bottom-nav" aria-label="移动端主要导航">
         <button
-          className={route === "home" ? "active" : ""}
+          className=""
           onClick={() => go("home")}
         >
-          <span>⌂</span>主页
+          <span>⌂</span>选择
         </button>
         <button
           className={
-            ["explore", "period", "person"].includes(route) ? "active" : ""
+            ["explore", "period"].includes(route) ? "active" : ""
           }
           onClick={() => go("explore")}
         >
-          <span>⌕</span>探索
+          <span>⌕</span>参观
         </button>
         <button
-          className={["museum", "pack", "chat"].includes(route) ? "active" : ""}
-          onClick={() => go("museum")}
+          className={
+            ["conversation", "person", "museum", "pack", "chat"].includes(route)
+              ? "active"
+              : ""
+          }
+          onClick={() => go("conversation")}
         >
-          <span>▣</span>博物馆
+          <span>◉</span>人物
         </button>
       </nav>
     );
@@ -1918,6 +1951,7 @@ export function Museum({ displayName }: { displayName: string }) {
   const views: Record<Route, () => React.ReactNode> = {
     mode: modeView,
     home,
+    conversation: conversationHome,
     explore,
     period: periodView,
     hall: hallView,
